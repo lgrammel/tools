@@ -2,20 +2,23 @@
   "name": "@lgrammel/kiwix-tool",
   "version": "0.1.0",
   "description": "AI SDK 7 tool for reading Kiwix/ZIM archives with Node.js libzim bindings.",
-  "type": "module",
   "license": "GPL-3.0-or-later",
-  "sideEffects": false,
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist",
     "README.md"
   ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
@@ -26,14 +29,11 @@
     "html-to-text": "^10.0.0",
     "zod": "^4.4.3"
   },
-  "peerDependencies": {
-    "ai": "7.0.0-canary.120"
-  },
-  "publishConfig": {
-    "access": "public"
-  },
   "devDependencies": {
     "@types/html-to-text": "^9.0.4",
+    "ai": "7.0.0-canary.120"
+  },
+  "peerDependencies": {
     "ai": "7.0.0-canary.120"
   }
 }

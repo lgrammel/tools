@@ -10,29 +10,28 @@ if (!zimPath) {
 }
 
 const prompt =
-  process.argv.slice(2).join(" ") ||
-  "Explain what Kiwix is in three concise bullet points.";
+  process.argv.slice(2).join(" ") || "Explain what Kiwix is in three concise bullet points.";
 
 console.error(`Using ZIM archive: ${zimPath}`);
 
 const kiwix = new KiwixTools({
   zimPath,
-  preloadXapianDb: true
+  preloadXapianDb: true,
 });
 
 const agent = new ToolLoopAgent({
   model: openai("gpt-5.5"),
   instructions:
-    "Answer using the local Kiwix Wikipedia archive."+
-    " Search with wikipediaSearch first, then use wikipediaRead with a path from the search results before answering.",
+    "Answer using the local Kiwix Wikipedia archive." +
+    "Search with wikipediaSearch first, then use wikipediaRead with a path from the search results before answering.",
   tools: {
     wikipediaSearch: kiwix.searchTool,
-    wikipediaRead: kiwix.readTool
-  }
+    wikipediaRead: kiwix.readTool,
+  },
 });
 
 const result = await agent.generate({
-  prompt
+  prompt,
 });
 
 console.log(result.text);

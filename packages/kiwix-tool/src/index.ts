@@ -14,11 +14,11 @@ const MAX_SNIPPET_LENGTH = 600;
 type LibzimModule = typeof import("@openzim/libzim");
 
 export const kiwixSearchInputSchema = z.object({
-  query: z.string().min(1).describe("Full-text search query for the Kiwix archive.")
+  query: z.string().min(1).describe("Full-text search query for the Kiwix archive."),
 });
 
 export const kiwixReadInputSchema = z.object({
-  path: z.string().min(1).describe("Exact ZIM page path returned by the search tool.")
+  path: z.string().min(1).describe("Exact ZIM page path returned by the search tool."),
 });
 
 export type KiwixSearchInput = z.input<typeof kiwixSearchInputSchema>;
@@ -82,7 +82,7 @@ export class KiwixReader {
   constructor(options: CreateKiwixToolOptions) {
     this.zimPath = resolveHomePath(options.zimPath);
     this.searchResultLimit = clampSearchResultLimit(
-      options.searchResultLimit ?? DEFAULT_SEARCH_RESULT_LIMIT
+      options.searchResultLimit ?? DEFAULT_SEARCH_RESULT_LIMIT,
     );
     this.readMaxBytes = clampReadMaxBytes(options.readMaxBytes ?? DEFAULT_READ_MAX_BYTES);
     this.#options = options;
@@ -93,11 +93,11 @@ export class KiwixReader {
     this.#searcher ??= new Searcher(await this.#getArchive());
     const search = this.#searcher.search(query);
     const results = Array.from(
-      search.getResults(0, this.searchResultLimit) as Iterable<SearchIterator>
+      search.getResults(0, this.searchResultLimit) as Iterable<SearchIterator>,
     ).map((result) => ({
       title: result.title,
       path: result.path,
-      snippet: cleanSnippet(result.snippet)
+      snippet: cleanSnippet(result.snippet),
     }));
 
     return { results };
@@ -113,7 +113,7 @@ export class KiwixReader {
       title: entry.title,
       path: entry.path,
       content: formatPageContent(item, data),
-      truncated: data.byteLength < size
+      truncated: data.byteLength < size,
     };
   }
 
@@ -179,7 +179,7 @@ export function kiwixSearchTool(reader: KiwixReader): KiwixSearchTool {
     description:
       "Search the local Kiwix archive. Returns page paths, titles, and short snippets. Use the read tool with a returned path to read a page.",
     inputSchema: kiwixSearchInputSchema,
-    execute: async ({ query }) => reader.search(query)
+    execute: async ({ query }) => reader.search(query),
   });
 }
 
@@ -187,7 +187,7 @@ export function kiwixReadTool(reader: KiwixReader): KiwixReadTool {
   return tool({
     description: "Read one page from the local Kiwix archive by exact path from the search tool.",
     inputSchema: kiwixReadInputSchema,
-    execute: async ({ path }) => reader.readPath(path)
+    execute: async ({ path }) => reader.readPath(path),
   });
 }
 
@@ -207,9 +207,9 @@ function formatPageContent(item: Item, data: Buffer): string {
       { selector: "a", options: { ignoreHref: true } },
       { selector: "img", format: "skip" },
       { selector: "script", format: "skip" },
-      { selector: "style", format: "skip" }
+      { selector: "style", format: "skip" },
     ],
-    wordwrap: false
+    wordwrap: false,
   });
 }
 
