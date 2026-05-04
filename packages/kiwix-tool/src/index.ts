@@ -18,7 +18,7 @@ export const kiwixSearchInputSchema = z.object({
 });
 
 export const kiwixReadInputSchema = z.object({
-  path: z.string().min(1).describe("Exact ZIM page path returned by kiwixSearchTool.")
+  path: z.string().min(1).describe("Exact ZIM page path returned by the search tool.")
 });
 
 export type KiwixSearchInput = z.input<typeof kiwixSearchInputSchema>;
@@ -26,7 +26,7 @@ export type ParsedKiwixSearchInput = z.output<typeof kiwixSearchInputSchema>;
 export type KiwixReadInput = z.input<typeof kiwixReadInputSchema>;
 export type ParsedKiwixReadInput = z.output<typeof kiwixReadInputSchema>;
 
-export interface CreateKiwixToolsOptions {
+export interface CreateKiwixToolOptions {
   /**
    * Path to the `.zim` file. A leading `~/` is expanded to the current user's home directory.
    */
@@ -77,9 +77,9 @@ export class KiwixReader {
   #archive?: Promise<Archive>;
   #libzim?: Promise<LibzimModule>;
   #searcher?: Searcher;
-  readonly #options: CreateKiwixToolsOptions;
+  readonly #options: CreateKiwixToolOptions;
 
-  constructor(options: CreateKiwixToolsOptions) {
+  constructor(options: CreateKiwixToolOptions) {
     this.zimPath = resolveHomePath(options.zimPath);
     this.searchResultLimit = clampSearchResultLimit(
       options.searchResultLimit ?? DEFAULT_SEARCH_RESULT_LIMIT
@@ -143,32 +143,20 @@ export class KiwixReader {
   }
 }
 
-export function createKiwixSearchTool(options: CreateKiwixToolsOptions): KiwixSearchTool {
+export function createKiwixSearchTool(options: CreateKiwixToolOptions): KiwixSearchTool {
   const reader = new KiwixReader(options);
   return kiwixSearchTool(reader);
 }
 
-export function createKiwixReadTool(options: CreateKiwixToolsOptions): KiwixReadTool {
+export function createKiwixReadTool(options: CreateKiwixToolOptions): KiwixReadTool {
   const reader = new KiwixReader(options);
   return kiwixReadTool(reader);
-}
-
-export function createKiwixTools(options: CreateKiwixToolsOptions): {
-  kiwixSearchTool: KiwixSearchTool;
-  kiwixReadTool: KiwixReadTool;
-} {
-  const reader = new KiwixReader(options);
-
-  return {
-    kiwixSearchTool: kiwixSearchTool(reader),
-    kiwixReadTool: kiwixReadTool(reader)
-  };
 }
 
 export function kiwixSearchTool(reader: KiwixReader): KiwixSearchTool {
   return tool({
     description:
-      "Search the local Kiwix archive. Returns page paths, titles, and short snippets. Use kiwixReadTool with a returned path to read a page.",
+      "Search the local Kiwix archive. Returns page paths, titles, and short snippets. Use the read tool with a returned path to read a page.",
     inputSchema: kiwixSearchInputSchema,
     execute: async ({ query }) => reader.search(query)
   });
@@ -176,7 +164,7 @@ export function kiwixSearchTool(reader: KiwixReader): KiwixSearchTool {
 
 export function kiwixReadTool(reader: KiwixReader): KiwixReadTool {
   return tool({
-    description: "Read one page from the local Kiwix archive by exact path from kiwixSearchTool.",
+    description: "Read one page from the local Kiwix archive by exact path from the search tool.",
     inputSchema: kiwixReadInputSchema,
     execute: async ({ path }) => reader.readPath(path)
   });
