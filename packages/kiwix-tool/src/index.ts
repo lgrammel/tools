@@ -143,6 +143,27 @@ export class KiwixReader {
   }
 }
 
+export class KiwixTools {
+  readonly reader: KiwixReader;
+
+  #searchTool?: KiwixSearchTool;
+  #readTool?: KiwixReadTool;
+
+  constructor(options: CreateKiwixToolOptions) {
+    this.reader = new KiwixReader(options);
+  }
+
+  get searchTool(): KiwixSearchTool {
+    this.#searchTool ??= kiwixSearchTool(this.reader);
+    return this.#searchTool;
+  }
+
+  get readTool(): KiwixReadTool {
+    this.#readTool ??= kiwixReadTool(this.reader);
+    return this.#readTool;
+  }
+}
+
 export function createKiwixSearchTool(options: CreateKiwixToolOptions): KiwixSearchTool {
   const reader = new KiwixReader(options);
   return kiwixSearchTool(reader);

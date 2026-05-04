@@ -1,5 +1,5 @@
 import { openai } from "@ai-sdk/openai";
-import { createKiwixReadTool, createKiwixSearchTool } from "@lgrammel/kiwix-tool";
+import { KiwixTools } from "@lgrammel/kiwix-tool";
 import { isStepCount, ToolLoopAgent } from "ai";
 import { readdir } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -14,10 +14,10 @@ const prompt =
 
 console.error(`Using ZIM archive: ${zimPath}`);
 
-const kiwixToolOptions = {
+const kiwix = new KiwixTools({
   zimPath,
   preloadXapianDb: true
-};
+});
 
 const agent = new ToolLoopAgent({
   id: "kiwix-terminal-agent",
@@ -25,8 +25,8 @@ const agent = new ToolLoopAgent({
   instructions:
     "Answer using the local Kiwix Wikipedia archive. Use wikipediaSearch first, then use wikipediaRead with a path from the search results before answering.",
   tools: {
-    wikipediaSearch: createKiwixSearchTool(kiwixToolOptions),
-    wikipediaRead: createKiwixReadTool(kiwixToolOptions)
+    wikipediaSearch: kiwix.searchTool,
+    wikipediaRead: kiwix.readTool
   },
   stopWhen: isStepCount(8)
 });
