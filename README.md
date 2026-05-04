@@ -5,7 +5,7 @@ Bun monorepo for `@lgrammel/kiwix-tool`, an AI SDK 7 tool package for reading Ki
 ## Packages
 
 - `packages/kiwix-tool`: publishable package `@lgrammel/kiwix-tool`
-- `examples/terminal`: private terminal example that uses Wikipedia ZIM files from `~/opt/zim`
+- `examples/terminal`: private terminal example that uses `/Users/lgrammel/opt/zim/wikipedia_en_all_maxi_2026-02.zim`
 
 ## Setup
 
@@ -20,4 +20,4 @@ Run the terminal example with an OpenAI API key:
 OPENAI_API_KEY=... bun run --cwd examples/terminal start
 ```
 
-The example defaults to the first Wikipedia `.zim` file under `~/opt/zim`. Override it with `KIWIX_ZIM_PATH=/path/to/file.zim`.
+The example has the Wikipedia ZIM path hardcoded in `examples/terminal/src/index.ts`.
