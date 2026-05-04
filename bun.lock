@@ -15,6 +15,7 @@
         "@ai-sdk/openai": "4.0.0-canary.47",
         "@lgrammel/kiwix-tool": "workspace:*",
         "ai": "7.0.0-canary.120",
+        "dotenv": "^17.4.2",
       },
     },
     "packages/kiwix-tool": {
