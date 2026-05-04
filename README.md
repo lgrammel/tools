@@ -1,0 +1,23 @@
+# kiwix-tool
+
+Bun monorepo for `@lgrammel/kiwix-tool`, an AI SDK 7 tool package for reading Kiwix/ZIM files from Node.js.
+
+## Packages
+
+- `packages/kiwix-tool`: publishable package `@lgrammel/kiwix-tool`
+- `examples/terminal`: private terminal example that uses Wikipedia ZIM files from `~/opt/zim`
+
+## Setup
+
+```bash
+bun install
+bun run build
+```
+
+Run the terminal example with an OpenAI API key:
+
+```bash
+OPENAI_API_KEY=... bun run --cwd examples/terminal start
+```
+
+The example defaults to the first Wikipedia `.zim` file under `~/opt/zim`. Override it with `KIWIX_ZIM_PATH=/path/to/file.zim`.

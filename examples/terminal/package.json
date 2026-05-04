@@ -1,0 +1,15 @@
+{
+  "name": "@lgrammel/kiwix-tool-terminal-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "4.0.0-canary.47",
+    "@lgrammel/kiwix-tool": "workspace:*",
+    "ai": "7.0.0-canary.120"
+  }
+}
