@@ -1,6 +1,6 @@
 import { openai } from "@ai-sdk/openai";
 import { createKiwixTools } from "@lgrammel/kiwix-tool";
-import { generateText, isStepCount } from "ai";
+import { isStepCount, ToolLoopAgent } from "ai";
 import { readdir } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join } from "node:path";
@@ -14,13 +14,19 @@ const prompt =
 
 console.error(`Using ZIM archive: ${zimPath}`);
 
-const result = await generateText({
+const agent = new ToolLoopAgent({
+  id: "kiwix-terminal-agent",
   model: openai(process.env.OPENAI_MODEL ?? "gpt-5-mini"),
+  instructions:
+    "Answer using the local Kiwix Wikipedia archive. Use kiwixSearchTool first, then use kiwixReadTool with a path from the search results before answering.",
   tools: createKiwixTools({
     zimPath,
     preloadXapianDb: true
   }),
-  stopWhen: isStepCount(6),
+  stopWhen: isStepCount(8)
+});
+
+const result = await agent.generate({
   prompt
 });
 

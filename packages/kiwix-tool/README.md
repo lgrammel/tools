@@ -4,25 +4,24 @@ AI SDK 7 canary tool for reading local Kiwix/ZIM archives in Node.js with `@open
 
 ```ts
 import { createKiwixTools } from "@lgrammel/kiwix-tool";
-import { generateText } from "ai";
+import { ToolLoopAgent } from "ai";
 
-const result = await generateText({
+const agent = new ToolLoopAgent({
   model,
+  instructions: "Answer using the local Wikipedia archive. Search before reading pages.",
   tools: createKiwixTools({
     zimPath: "~/opt/zim/wikipedia.zim"
-  }),
-  prompt: "Use Wikipedia to answer: what is Kiwix?"
+  })
+});
+
+const result = await agent.generate({
+  prompt: "What is Kiwix?"
 });
 ```
 
-## Tool Actions
+## Tools
 
-- `metadata`: archive metadata and counts
-- `search`: full-text search
-- `suggest`: title suggestions
-- `readPath`: read an exact ZIM path
-- `readTitle`: read an exact ZIM title
-- `readMain`: read the archive main entry
-- `readRandom`: read a random entry
+- `kiwixSearchTool`: full-text search. Input is only `{ query }`. Output is `results` with `title`, `path`, and optional `snippet`.
+- `kiwixReadTool`: read a page by exact path. Input is only `{ path }`. Output is `title`, `path`, `content`, and `truncated`.
 
-HTML entries are converted to UTF-8 text before returning them to the model. Non-text entries are returned as base64.
+The model cannot choose limits. Search result count and page byte limits are fixed in `createKiwixTools` options so tool outputs stay small enough for agents. HTML pages are converted to UTF-8 text before returning them to the model.
