@@ -31,18 +31,22 @@ export interface CreateKiwixToolOptions {
    * Path to the `.zim` file. A leading `~/` is expanded to the current user's home directory.
    */
   zimPath: string;
+
   /**
    * Fixed number of search results returned to the agent. This is intentionally not model-controlled.
    */
   searchResultLimit?: number;
+
   /**
    * Fixed maximum page bytes read before HTML-to-text conversion. This is intentionally not model-controlled.
    */
   readMaxBytes?: number;
+
   /**
    * Preload the full-text index when opening the archive.
    */
   preloadXapianDb?: boolean;
+
   /**
    * Number of directory entry ranges to preload when opening the archive.
    */
