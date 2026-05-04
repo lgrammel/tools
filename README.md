@@ -21,4 +21,4 @@ cp examples/terminal/.env.example examples/terminal/.env
 bun run --cwd examples/terminal start
 ```
 
-The example expects `OPENAI_API_KEY` and `KIWIX_ZIM_PATH` in `examples/terminal/.env`.
+The example expects `OPENAI_API_KEY` and `WIKIPEDIA_ZIM_PATH` in `examples/terminal/.env`.

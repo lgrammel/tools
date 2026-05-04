@@ -19,6 +19,7 @@ const wikipediaKiwix = new KiwixTools({
 
 const agent = new ToolLoopAgent({
   model: openai("gpt-5.5"),
+  instructions: "Ground your answers in the local Wikipedia archive.",
   tools: {
     wikipediaSearch: wikipediaKiwix.searchTool,
     wikipediaRead: wikipediaKiwix.readTool,
@@ -28,5 +29,7 @@ const agent = new ToolLoopAgent({
 const result = await agent.generate({
   prompt,
 });
+
+console.log(JSON.stringify(result.steps, null, 2));
 
 console.log(result.text);
