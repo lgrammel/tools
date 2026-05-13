@@ -1,4 +1,5 @@
-import { format, inspect, type InspectOptions } from "node:util";
+import ivm from "isolated-vm";
+import { inspect } from "node:util";
 import { tool, type Tool } from "ai";
 import { z } from "zod";
 
@@ -6,17 +7,15 @@ const DEFAULT_TIMEOUT_MS = 5_000;
 const HARD_TIMEOUT_MS = 60_000;
 const DEFAULT_MAX_OUTPUT_BYTES = 64 * 1024;
 const HARD_MAX_OUTPUT_BYTES = 1024 * 1024;
-
-const AsyncFunction = async function () {}.constructor as new (
-  ...args: string[]
-) => (...args: unknown[]) => Promise<unknown>;
+const DEFAULT_MEMORY_LIMIT_MB = 8;
+const HARD_MEMORY_LIMIT_MB = 128;
 
 export const jsCodeExecutorInputSchema = z.object({
   code: z
     .string()
     .min(1)
     .describe(
-      "JavaScript code to execute in the current runtime as an async function body. Use await, return a value, or print values with console.log/console.error.",
+      "JavaScript code to execute in an isolated in-process V8 isolate. Use await, return a value, or print values with console.log/console.error.",
     ),
 });
 
@@ -30,8 +29,7 @@ export interface CreateJsCodeExecutorToolOptions {
   context?: Readonly<Record<string, unknown>>;
 
   /**
-   * Maximum time to wait for async code to settle. This cannot interrupt synchronous code that is
-   * already running on the event loop.
+   * Maximum execution time. This is intentionally not model-controlled.
    */
   timeoutMs?: number;
 
@@ -40,6 +38,11 @@ export interface CreateJsCodeExecutorToolOptions {
    * This is intentionally not model-controlled.
    */
   maxOutputBytes?: number;
+
+  /**
+   * Maximum V8 isolate heap size. This is intentionally not model-controlled.
+   */
+  memoryLimitMb?: number;
 }
 
 export interface JsCodeExecutionError {
@@ -64,6 +67,7 @@ export class JsCodeExecutor {
   readonly context: Readonly<Record<string, unknown>>;
   readonly timeoutMs: number;
   readonly maxOutputBytes: number;
+  readonly memoryLimitMb: number;
 
   constructor(options: CreateJsCodeExecutorToolOptions = {}) {
     this.context = options.context ?? {};
@@ -72,6 +76,10 @@ export class JsCodeExecutor {
       options.maxOutputBytes ?? DEFAULT_MAX_OUTPUT_BYTES,
       HARD_MAX_OUTPUT_BYTES,
     );
+    this.memoryLimitMb = clampPositiveInteger(
+      options.memoryLimitMb ?? DEFAULT_MEMORY_LIMIT_MB,
+      HARD_MEMORY_LIMIT_MB,
+    );
   }
 
   execute(code: string): Promise<JsCodeExecutionOutput> {
@@ -79,6 +87,7 @@ export class JsCodeExecutor {
       context: this.context,
       timeoutMs: this.timeoutMs,
       maxOutputBytes: this.maxOutputBytes,
+      memoryLimitMb: this.memoryLimitMb,
     });
   }
 }
@@ -90,7 +99,7 @@ export function jsCodeExecutorTool(
 
   return tool({
     description:
-      "Execute JavaScript code in the current runtime and return the formatted result, stdout, stderr, error status, timeout status, and truncation status.",
+      "Execute JavaScript code in an isolated in-process V8 isolate and return the formatted result, stdout, stderr, error status, timeout status, and truncation status.",
     inputSchema: jsCodeExecutorInputSchema,
     execute: async ({ code }) => executor.execute(code),
   });
@@ -100,6 +109,7 @@ interface NormalizedExecutionOptions {
   context: Readonly<Record<string, unknown>>;
   timeoutMs: number;
   maxOutputBytes: number;
+  memoryLimitMb: number;
 }
 
 async function executeJavaScriptCode(
@@ -108,16 +118,26 @@ async function executeJavaScriptCode(
 ): Promise<JsCodeExecutionOutput> {
   const startedAt = Date.now();
   const output = new OutputCapture(options.maxOutputBytes);
+  const isolate = new ivm.Isolate({ memoryLimit: options.memoryLimitMb });
 
   try {
-    const execute = new AsyncFunction("console", "context", `"use strict";\n${code}`);
-    const result = await withTimeout(
-      execute(createCapturedConsole(output), options.context),
-      options.timeoutMs,
+    const isolateContext = await isolate.createContext({ inspector: false });
+    await initializeIsolateContext(isolateContext, output, options.context, options.timeoutMs);
+    const script = await isolate.compileScript(
+      `"use strict";
+const __userCode = async () => {
+${code}
+};
+globalThis.__formatExecutionResult(await __userCode());`,
+      { filename: "js-code-executor.js" },
     );
+    const result = await script.run(isolateContext, {
+      promise: true,
+      timeout: options.timeoutMs,
+    });
 
     return {
-      result: formatExecutionResult(result),
+      result: typeof result === "string" ? result : undefined,
       stdout: output.stdout,
       stderr: output.stderr,
       timedOut: false,
@@ -129,11 +149,118 @@ async function executeJavaScriptCode(
       stdout: output.stdout,
       stderr: output.stderr,
       error: normalizeExecutionError(error),
-      timedOut: error instanceof ExecutionTimeoutError,
+      timedOut: isTimeoutError(error),
       outputTruncated: output.outputTruncated,
       durationMs: Date.now() - startedAt,
     };
+  } finally {
+    isolate.dispose();
   }
+}
+
+async function initializeIsolateContext(
+  context: ivm.Context,
+  output: OutputCapture,
+  hostContext: Readonly<Record<string, unknown>>,
+  timeoutMs: number,
+): Promise<void> {
+  const jail = context.global;
+
+  await jail.set("globalThis", jail.derefInto());
+  await jail.set("__context", new ivm.ExternalCopy(hostContext).copyInto());
+  await jail.set("__writeStdout", new ivm.Callback((value: unknown) => {
+    output.writeStdout(`${value}`);
+  }));
+  await jail.set("__writeStderr", new ivm.Callback((value: unknown) => {
+    output.writeStderr(`${value}`);
+  }));
+
+  await context.eval(
+    `"use strict";
+const context = Object.freeze(__context);
+const formatConsoleLine = (...args) => args.map((value) => {
+  if (typeof value === "string") return value;
+  if (typeof value === "bigint") return value.toString() + "n";
+  if (typeof value === "symbol") return value.toString();
+  if (value instanceof Error) return value.stack || value.message;
+  if (typeof value === "undefined") return "undefined";
+  if (typeof value === "function") return value.toString();
+
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}).join(" ") + "\\n";
+const timers = new Map();
+const console = Object.freeze({
+  assert(condition, ...args) {
+    if (!condition) __writeStderr(formatConsoleLine("Assertion failed", ...args));
+  },
+  clear() {},
+  count(label = "default") {
+    const count = (timers.get(label) || 0) + 1;
+    timers.set(label, count);
+    __writeStdout(formatConsoleLine(label + ": " + count));
+  },
+  countReset(label = "default") {
+    timers.delete(label);
+  },
+  debug(...args) {
+    __writeStdout(formatConsoleLine(...args));
+  },
+  dir(value) {
+    __writeStdout(formatConsoleLine(value));
+  },
+  dirxml(...args) {
+    __writeStdout(formatConsoleLine(...args));
+  },
+  error(...args) {
+    __writeStderr(formatConsoleLine(...args));
+  },
+  group(...args) {
+    if (args.length > 0) __writeStdout(formatConsoleLine(...args));
+  },
+  groupCollapsed(...args) {
+    if (args.length > 0) __writeStdout(formatConsoleLine(...args));
+  },
+  groupEnd() {},
+  info(...args) {
+    __writeStdout(formatConsoleLine(...args));
+  },
+  log(...args) {
+    __writeStdout(formatConsoleLine(...args));
+  },
+  table(...args) {
+    __writeStdout(formatConsoleLine(...args));
+  },
+  time(label = "default") {
+    timers.set(label, Date.now());
+  },
+  timeEnd(label = "default") {
+    const startedAt = timers.get(label);
+    timers.delete(label);
+    __writeStdout(formatConsoleLine(label + ": " + (startedAt === undefined ? "timer does not exist" : Date.now() - startedAt + "ms")));
+  },
+  timeLog(label = "default", ...args) {
+    const startedAt = timers.get(label);
+    __writeStdout(formatConsoleLine(label + ": " + (startedAt === undefined ? "timer does not exist" : Date.now() - startedAt + "ms"), ...args));
+  },
+  trace(...args) {
+    __writeStderr((new Error(args.join(" ")).stack || formatConsoleLine(...args)) + "\\n");
+  },
+  warn(...args) {
+    __writeStderr(formatConsoleLine(...args));
+  },
+});
+globalThis.context = context;
+globalThis.console = console;
+globalThis.__formatExecutionResult = (value) => {
+  if (value === undefined) return undefined;
+  return typeof value === "string" ? value : formatConsoleLine(value).trimEnd();
+};`,
+    { timeout: timeoutMs },
+  );
 }
 
 class OutputCapture {
@@ -187,104 +314,6 @@ class OutputCapture {
   }
 }
 
-function createCapturedConsole(output: OutputCapture): Console {
-  const timers = new Map<string, number>();
-
-  return {
-    assert(condition?: boolean, ...args: unknown[]) {
-      if (!condition) {
-        output.writeStderr(formatConsoleLine("Assertion failed", ...args));
-      }
-    },
-    clear() {},
-    count(label = "default") {
-      const count = (timers.get(label) ?? 0) + 1;
-      timers.set(label, count);
-      output.writeStdout(formatConsoleLine(`${label}: ${count}`));
-    },
-    countReset(label = "default") {
-      timers.delete(label);
-    },
-    debug(...args: unknown[]) {
-      output.writeStdout(formatConsoleLine(...args));
-    },
-    dir(value: unknown, options?: InspectOptions) {
-      output.writeStdout(`${inspect(value, options)}\n`);
-    },
-    dirxml(...args: unknown[]) {
-      output.writeStdout(formatConsoleLine(...args));
-    },
-    error(...args: unknown[]) {
-      output.writeStderr(formatConsoleLine(...args));
-    },
-    group(...args: unknown[]) {
-      if (args.length > 0) {
-        output.writeStdout(formatConsoleLine(...args));
-      }
-    },
-    groupCollapsed(...args: unknown[]) {
-      if (args.length > 0) {
-        output.writeStdout(formatConsoleLine(...args));
-      }
-    },
-    groupEnd() {},
-    info(...args: unknown[]) {
-      output.writeStdout(formatConsoleLine(...args));
-    },
-    log(...args: unknown[]) {
-      output.writeStdout(formatConsoleLine(...args));
-    },
-    table(...args: unknown[]) {
-      output.writeStdout(formatConsoleLine(...args));
-    },
-    time(label = "default") {
-      timers.set(label, Date.now());
-    },
-    timeEnd(label = "default") {
-      const startedAt = timers.get(label);
-      timers.delete(label);
-      output.writeStdout(formatConsoleLine(`${label}: ${formatElapsedMs(startedAt)}`));
-    },
-    timeLog(label = "default", ...args: unknown[]) {
-      const startedAt = timers.get(label);
-      output.writeStdout(formatConsoleLine(`${label}: ${formatElapsedMs(startedAt)}`, ...args));
-    },
-    trace(...args: unknown[]) {
-      const stack = new Error(format(...args)).stack ?? format(...args);
-      output.writeStderr(`${stack}\n`);
-    },
-    warn(...args: unknown[]) {
-      output.writeStderr(formatConsoleLine(...args));
-    },
-  } as Console;
-}
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeout = setTimeout(() => reject(new ExecutionTimeoutError(timeoutMs)), timeoutMs);
-  });
-
-  return Promise.race([promise, timeoutPromise]).finally(() => {
-    if (timeout !== undefined) {
-      clearTimeout(timeout);
-    }
-  });
-}
-
-function formatConsoleLine(...args: unknown[]): string {
-  return `${format(...args)}\n`;
-}
-
-function formatElapsedMs(startedAt: number | undefined): string {
-  if (startedAt === undefined) {
-    return "timer does not exist";
-  }
-
-  return `${Date.now() - startedAt}ms`;
-}
-
 function formatExecutionResult(value: unknown): string | undefined {
   if (value === undefined) {
     return undefined;
@@ -314,18 +343,15 @@ function normalizeExecutionError(error: unknown): JsCodeExecutionError {
   };
 }
 
-class ExecutionTimeoutError extends Error {
-  constructor(timeoutMs: number) {
-    super(`JavaScript execution did not complete within ${timeoutMs}ms.`);
-    this.name = "ExecutionTimeoutError";
-  }
-}
-
 class OutputLimitExceededError extends Error {
   constructor(maxOutputBytes: number) {
     super(`JavaScript execution output exceeded ${maxOutputBytes} bytes.`);
     this.name = "OutputLimitExceededError";
   }
+}
+
+function isTimeoutError(error: unknown): boolean {
+  return error instanceof Error && /Script execution timed out|execution timed out/i.test(error.message);
 }
 
 function clampPositiveInteger(value: number, max: number): number {
