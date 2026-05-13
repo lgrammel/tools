@@ -73,7 +73,7 @@ export interface KiwixReadOutput {
 export type KiwixSearchTool = Tool<ParsedKiwixSearchInput, KiwixSearchOutput>;
 export type KiwixReadTool = Tool<ParsedKiwixReadInput, KiwixReadOutput>;
 
-export class KiwixReader {
+class KiwixReader {
   readonly zimPath: string;
   readonly searchResultLimit: number;
   readonly readMaxBytes: number;
@@ -148,37 +148,27 @@ export class KiwixReader {
 }
 
 export class KiwixTools {
-  readonly reader: KiwixReader;
+  readonly #reader: KiwixReader;
 
   #searchTool?: KiwixSearchTool;
   #readTool?: KiwixReadTool;
 
   constructor(options: CreateKiwixToolOptions) {
-    this.reader = new KiwixReader(options);
+    this.#reader = new KiwixReader(options);
   }
 
   get searchTool(): KiwixSearchTool {
-    this.#searchTool ??= kiwixSearchTool(this.reader);
+    this.#searchTool ??= kiwixSearchTool(this.#reader);
     return this.#searchTool;
   }
 
   get readTool(): KiwixReadTool {
-    this.#readTool ??= kiwixReadTool(this.reader);
+    this.#readTool ??= kiwixReadTool(this.#reader);
     return this.#readTool;
   }
 }
 
-export function createKiwixSearchTool(options: CreateKiwixToolOptions): KiwixSearchTool {
-  const reader = new KiwixReader(options);
-  return kiwixSearchTool(reader);
-}
-
-export function createKiwixReadTool(options: CreateKiwixToolOptions): KiwixReadTool {
-  const reader = new KiwixReader(options);
-  return kiwixReadTool(reader);
-}
-
-export function kiwixSearchTool(reader: KiwixReader): KiwixSearchTool {
+function kiwixSearchTool(reader: KiwixReader): KiwixSearchTool {
   return tool({
     description:
       "Search the local Kiwix archive. Returns page paths, titles, and short snippets. Use the read tool with a returned path to read a page.",
@@ -187,7 +177,7 @@ export function kiwixSearchTool(reader: KiwixReader): KiwixSearchTool {
   });
 }
 
-export function kiwixReadTool(reader: KiwixReader): KiwixReadTool {
+function kiwixReadTool(reader: KiwixReader): KiwixReadTool {
   return tool({
     description: "Read one page from the local Kiwix archive by exact path from the search tool.",
     inputSchema: kiwixReadInputSchema,

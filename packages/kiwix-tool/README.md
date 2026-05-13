@@ -16,15 +16,23 @@ This package uses `@openzim/libzim` under the hood and must run in a Node.js-com
 
 ```ts
 import { KiwixTools } from "@lgrammel/kiwix-tool";
+import { openai } from "@ai-sdk/openai";
 import { ToolLoopAgent } from "ai";
 
+const prompt =
+  process.argv.slice(2).join(" ") || "Explain what Kiwix is in three concise bullet points.";
+
 const kiwix = new KiwixTools({
-  zimPath: "~/opt/zim/wikipedia.zim"
+  zimPath: process.env.WIKIPEDIA_ZIM_PATH ?? "~/opt/zim/wikipedia.zim",
+  searchResultLimit: 5,
+  readMaxBytes: 80 * 1024,
+  preloadXapianDb: true
 });
 
 const agent = new ToolLoopAgent({
-  model,
-  instructions: "Answer using the local Wikipedia archive. Search before reading pages.",
+  model: openai("gpt-5.5"),
+  instructions:
+    "Answer using the local Wikipedia archive. Search before reading pages, and cite the page titles you used.",
   tools: {
     wikipediaSearch: kiwix.searchTool,
     wikipediaRead: kiwix.readTool
@@ -32,8 +40,10 @@ const agent = new ToolLoopAgent({
 });
 
 const result = await agent.generate({
-  prompt: "What is Kiwix?"
+  prompt
 });
+
+console.log(result.text);
 ```
 
 ## Tools
@@ -45,37 +55,17 @@ The model cannot choose result or read limits. Search result count and page byte
 
 ## API
 
-Create both tools from one shared reader:
+Create both tools from one shared archive connection:
 
 ```ts
+import { KiwixTools } from "@lgrammel/kiwix-tool";
+
 const kiwix = new KiwixTools({
   zimPath: "~/opt/zim/wikipedia.zim",
   searchResultLimit: 5,
   readMaxBytes: 80 * 1024,
   preloadXapianDb: true
 });
-```
-
-Create individual tools when you only need one:
-
-```ts
-import { createKiwixReadTool, createKiwixSearchTool } from "@lgrammel/kiwix-tool";
-
-const searchTool = createKiwixSearchTool({ zimPath });
-const readTool = createKiwixReadTool({ zimPath });
-```
-
-Use `KiwixReader` directly when you want to wrap the behavior yourself:
-
-```ts
-import { KiwixReader, kiwixReadTool, kiwixSearchTool } from "@lgrammel/kiwix-tool";
-
-const reader = new KiwixReader({ zimPath });
-
-const tools = {
-  wikipediaSearch: kiwixSearchTool(reader),
-  wikipediaRead: kiwixReadTool(reader)
-};
 ```
 
 ## Options
