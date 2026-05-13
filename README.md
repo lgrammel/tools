@@ -1,20 +1,25 @@
-# kiwix-tool
+# AI SDK Tools
 
-Bun monorepo for `@lgrammel/kiwix-tool`, an AI SDK 7 tool package for reading Kiwix/ZIM files from Node.js.
+Tools for building local agents with the [AI SDK](https://ai-sdk.dev/). The packages in this repository are designed for agents that need access to local resources, local data, or developer-machine workflows.
 
-## Packages
+## Tools
 
-- `packages/kiwix-tool`: publishable package `@lgrammel/kiwix-tool`
-- `examples/terminal`: private terminal example that reads the Wikipedia ZIM path from `.env`
+- [`@lgrammel/kiwix-tool`](./packages/kiwix-tool): AI SDK tools for searching and reading local Kiwix/ZIM archives from Node.js.
 
-## Setup
+## Examples
+
+- [`examples/terminal`](./examples/terminal): terminal agent example that uses `@lgrammel/kiwix-tool` with a local Wikipedia ZIM archive.
+
+## Development
+
+Install dependencies and build all workspaces with Bun:
 
 ```bash
 bun install
 bun run build
 ```
 
-Run the terminal example with an OpenAI API key:
+Run the terminal example with an OpenAI API key and a local ZIM file:
 
 ```bash
 cp examples/terminal/.env.example examples/terminal/.env
