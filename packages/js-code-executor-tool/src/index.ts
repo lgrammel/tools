@@ -110,10 +110,11 @@ async function executeJavaScriptCode(
       `globalThis.__executionSettled = false;
 globalThis.__executionResult = undefined;
 globalThis.__executionError = undefined;
-(async () => {
+const __executionPromise = (async () => {
 "use strict";
 ${code}
-})()
+})();
+__executionPromise
   .then((value) => {
     globalThis.__executionSettled = true;
     globalThis.__executionResult = __formatExecutionResult(value);
@@ -121,24 +122,35 @@ ${code}
   .catch((error) => {
     globalThis.__executionSettled = true;
     globalThis.__executionError = __formatExecutionError(error);
-  });`,
+  });
+__executionPromise;`,
       { filename: "js-code-executor.js" },
     );
     const vmContext = vm.createContext(createSandbox(output, options.context), {
       microtaskMode: "afterEvaluate",
     });
-    script.runInContext(vmContext, { timeout: options.timeoutMs });
-    const executionError = vmContext.__executionSettled
-      ? vmContext.__executionError
-      : normalizeExecutionError(new ExecutionTimeoutError(options.timeoutMs));
+    const execution = script.runInContext(vmContext, { timeout: options.timeoutMs });
+    let result = vmContext.__executionResult;
+    let executionError = vmContext.__executionError;
+    let timedOut = false;
+
+    if (!vmContext.__executionSettled) {
+      try {
+        result = formatExecutionResult(
+          await withTimeout(Promise.resolve(execution), options.timeoutMs),
+        );
+      } catch (error) {
+        executionError = normalizeExecutionError(error);
+        timedOut = isTimeoutError(error);
+      }
+    }
 
     return {
-      result:
-        typeof vmContext.__executionResult === "string" ? vmContext.__executionResult : undefined,
+      result: typeof result === "string" ? result : undefined,
       stdout: output.stdout,
       stderr: output.stderr,
       error: executionError,
-      timedOut: !vmContext.__executionSettled,
+      timedOut,
       outputTruncated: output.outputTruncated,
       durationMs: Date.now() - startedAt,
     };
@@ -365,6 +377,20 @@ function isTimeoutError(error: unknown): boolean {
 
 function clampPositiveInteger(value: number, max: number): number {
   return Math.min(Math.max(Math.trunc(value), 1), max);
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => reject(new ExecutionTimeoutError(timeoutMs)), timeoutMs);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeout !== undefined) {
+      clearTimeout(timeout);
+    }
+  });
 }
 
 function deepFreeze<T>(value: T): T {
