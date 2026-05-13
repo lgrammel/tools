@@ -21,6 +21,19 @@
         "dotenv": "^17.4.2",
       },
     },
+    "packages/js-code-executor-tool": {
+      "name": "@lgrammel/js-code-executor-tool",
+      "version": "1.0.0",
+      "dependencies": {
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
+        "ai": "7.0.0-canary.133",
+      },
+      "peerDependencies": {
+        "ai": "7.0.0-canary.133",
+      },
+    },
     "packages/kiwix-tool": {
       "name": "@lgrammel/kiwix-tool",
       "version": "1.0.0",
@@ -79,6 +92,8 @@
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.9", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.0.3", "@jridgewell/sourcemap-codec": "^1.4.10" } }, "sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ=="],
 
     "@lgrammel/agent-tui": ["@lgrammel/agent-tui@0.2.0", "", { "dependencies": { "ai": "^7.0.0-canary.130" }, "peerDependencies": { "typescript": "^5" } }, "sha512-fzS5pn4wIziOjbGyKuMwuBU2mM+fq5yjs5WavyMFhDWbKd6ULniuIpaMOGgdxC8VlJI69b+rkQ9b8flEAqfSSg=="],
+
+    "@lgrammel/js-code-executor-tool": ["@lgrammel/js-code-executor-tool@workspace:packages/js-code-executor-tool"],
 
     "@lgrammel/kiwix-tool": ["@lgrammel/kiwix-tool@workspace:packages/kiwix-tool"],
 

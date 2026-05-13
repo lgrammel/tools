@@ -1,7 +1,7 @@
 {
   "name": "@lgrammel/js-code-executor-tool",
   "version": "1.0.0",
-  "description": "AI SDK 7 tool for executing JavaScript code in a bounded local Node.js subprocess.",
+  "description": "AI SDK 7 tool for executing JavaScript code in the current runtime.",
   "license": "MIT",
   "files": [
     "dist",
