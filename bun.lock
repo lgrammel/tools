@@ -11,6 +11,16 @@
         "typescript": "^6.0.3",
       },
     },
+    "examples/js-code-executor-tool": {
+      "name": "@lgrammel/js-code-executor-tool-example",
+      "dependencies": {
+        "@ai-sdk/openai": "4.0.0-canary.55",
+        "@lgrammel/agent-tui": "^0.2.0",
+        "@lgrammel/js-code-executor-tool": "workspace:*",
+        "ai": "7.0.0-canary.133",
+        "dotenv": "^17.4.2",
+      },
+    },
     "examples/kiwix-tool": {
       "name": "@lgrammel/kiwix-tool-example",
       "dependencies": {
@@ -94,6 +104,8 @@
     "@lgrammel/agent-tui": ["@lgrammel/agent-tui@0.2.0", "", { "dependencies": { "ai": "^7.0.0-canary.130" }, "peerDependencies": { "typescript": "^5" } }, "sha512-fzS5pn4wIziOjbGyKuMwuBU2mM+fq5yjs5WavyMFhDWbKd6ULniuIpaMOGgdxC8VlJI69b+rkQ9b8flEAqfSSg=="],
 
     "@lgrammel/js-code-executor-tool": ["@lgrammel/js-code-executor-tool@workspace:packages/js-code-executor-tool"],
+
+    "@lgrammel/js-code-executor-tool-example": ["@lgrammel/js-code-executor-tool-example@workspace:examples/js-code-executor-tool"],
 
     "@lgrammel/kiwix-tool": ["@lgrammel/kiwix-tool@workspace:packages/kiwix-tool"],
 

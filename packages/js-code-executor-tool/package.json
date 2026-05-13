@@ -1,7 +1,7 @@
 {
   "name": "@lgrammel/js-code-executor-tool",
   "version": "1.0.0",
-  "description": "AI SDK 7 tool for executing JavaScript code in an isolated in-process V8 isolate.",
+  "description": "AI SDK 7 tool for executing JavaScript code in an in-process Node.js vm context.",
   "license": "MIT",
   "files": [
     "dist",
@@ -25,7 +25,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "isolated-vm": "^6.0.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {

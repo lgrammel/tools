@@ -1,8 +1,8 @@
 # JavaScript Code Executor Tool
 
-AI SDK 7 tool for executing JavaScript code in an isolated in-process V8 isolate.
+AI SDK 7 tool for executing JavaScript code in an in-process Node.js `vm` context.
 
-Use this tool only with trusted agents and prompts. Code runs in a separate V8 isolate with a curated global object, memory limit, timeout, copied `context`, and captured `console`, but it still shares the host process.
+Use this tool only with trusted agents and prompts. It uses Node's built-in `vm` module with a curated global object, timeout, copied `context`, and captured `console`, but `node:vm` is not a security boundary for hostile code.
 
 ## Installation
 
@@ -27,20 +27,18 @@ const agent = new ToolLoopAgent({
       },
       timeoutMs: 5_000,
       maxOutputBytes: 64 * 1024,
-      memoryLimitMb: 8,
     }),
   },
 });
 ```
 
-The model supplies only the JavaScript source code. Code runs as an async function body inside an isolate, so it can use `await`, return a value, use the captured `console`, and read copied values from the `context` object.
+The model supplies only the JavaScript source code. Code runs as an async function body inside a `vm` context, so it can use `await`, return a value, use the captured `console`, and read copied values from the `context` object.
 
 ## Options
 
 - `context`: values exposed to executed code as the `context` object. Defaults to `{}`.
 - `timeoutMs`: maximum execution time. Defaults to `5000` and is capped at `60000`.
 - `maxOutputBytes`: maximum combined stdout and stderr retained. Defaults to `65536` and is capped at `1048576`. Console calls that exceed this limit throw.
-- `memoryLimitMb`: maximum V8 isolate heap size. Defaults to `8` and is capped at `128`.
 
 ## Output
 
