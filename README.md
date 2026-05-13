@@ -5,6 +5,7 @@ Tools for building local agents with the [AI SDK](https://ai-sdk.dev/). The pack
 ## Tools
 
 - [`@lgrammel/kiwix-tool`](./packages/kiwix-tool): AI SDK tools for searching and reading local Kiwix/ZIM archives from Node.js.
+- [`@lgrammel/js-code-executor-tool`](./packages/js-code-executor-tool): AI SDK tool for executing JavaScript code in a bounded local Node.js subprocess.
 
 ## Examples
 
