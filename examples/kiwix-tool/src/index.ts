@@ -1,16 +1,14 @@
 import "dotenv/config";
 import { openai } from "@ai-sdk/openai";
+import { runAgentTUI } from "@lgrammel/agent-tui";
 import { KiwixTools } from "@lgrammel/kiwix-tool";
-import { ToolLoopAgent } from "ai";
+import { ToolLoopAgent, type Agent } from "ai";
 
 const wikipediaZimPath = process.env.WIKIPEDIA_ZIM_PATH;
 
 if (!wikipediaZimPath) {
-  throw new Error("WIKIPEDIA_ZIM_PATH must be set in examples/terminal/.env");
+  throw new Error("WIKIPEDIA_ZIM_PATH must be set in examples/kiwix-tool/.env");
 }
-
-const prompt =
-  process.argv.slice(2).join(" ") || "Explain what Kiwix is in three concise bullet points.";
 
 const wikipediaKiwix = new KiwixTools({
   zimPath: wikipediaZimPath,
@@ -19,17 +17,17 @@ const wikipediaKiwix = new KiwixTools({
 
 const agent = new ToolLoopAgent({
   model: openai("gpt-5.5"),
-  instructions: "Ground your answers in the local Wikipedia archive.",
+  instructions:
+    "Ground your answers in the local Wikipedia archive. Search before reading pages, and cite the page titles you used.",
   tools: {
     wikipediaSearch: wikipediaKiwix.searchTool,
     wikipediaRead: wikipediaKiwix.readTool,
   },
 });
 
-const result = await agent.generate({
-  prompt,
+await runAgentTUI({
+  name: "Kiwix Tool",
+  agent: agent as Agent<any, any, any, any>,
+  tools: "collapsed",
+  reasoning: "hidden",
 });
-
-console.log(JSON.stringify(result.steps, null, 2));
-
-console.log(result.text);

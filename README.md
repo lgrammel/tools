@@ -8,7 +8,7 @@ Tools for building local agents with the [AI SDK](https://ai-sdk.dev/). The pack
 
 ## Examples
 
-- [`examples/terminal`](./examples/terminal): terminal agent example that uses `@lgrammel/kiwix-tool` with a local Wikipedia ZIM archive.
+- [`examples/kiwix-tool`](./examples/kiwix-tool): terminal UI example that uses `@lgrammel/kiwix-tool` with a local Wikipedia ZIM archive.
 
 ## Development
 
@@ -19,11 +19,11 @@ bun install
 bun run build
 ```
 
-Run the terminal example with an OpenAI API key and a local ZIM file:
+Run the Kiwix tool example with an OpenAI API key and a local ZIM file:
 
 ```bash
-cp examples/terminal/.env.example examples/terminal/.env
-bun run --cwd examples/terminal start
+cp examples/kiwix-tool/.env.example examples/kiwix-tool/.env
+bun run --cwd examples/kiwix-tool start
 ```
 
-The example expects `OPENAI_API_KEY` and `WIKIPEDIA_ZIM_PATH` in `examples/terminal/.env`.
+The example expects `OPENAI_API_KEY` and `WIKIPEDIA_ZIM_PATH` in `examples/kiwix-tool/.env`. It launches an interactive terminal UI rendered by `@lgrammel/agent-tui`.
