@@ -15,27 +15,34 @@ This package uses `@openzim/libzim` under the hood and must run in a Node.js-com
 ## Usage
 
 ```ts
-import { KiwixTools } from "@lgrammel/kiwix-tool";
+import { kiwixReadPage, kiwixSearch } from "@lgrammel/kiwix-tool";
 import { openai } from "@ai-sdk/openai";
 import { ToolLoopAgent } from "ai";
 
 const prompt =
   process.argv.slice(2).join(" ") || "Explain what Kiwix is in three concise bullet points.";
 
-const kiwix = new KiwixTools({
-  zimPath: process.env.WIKIPEDIA_ZIM_PATH ?? "~/opt/zim/wikipedia.zim",
-  searchResultLimit: 5,
-  readMaxBytes: 80 * 1024,
-  preloadXapianDb: true
-});
+const kiwixArchiveContext = {
+  zimPath: process.env.WIKIPEDIA_ZIM_PATH ?? "~/opt/zim/wikipedia.zim"
+};
 
 const agent = new ToolLoopAgent({
   model: openai("gpt-5.5"),
   instructions:
     "Answer using the local Wikipedia archive. Search before reading pages, and cite the page titles you used.",
   tools: {
-    wikipediaSearch: kiwix.searchTool,
-    wikipediaRead: kiwix.readTool
+    wikipediaSearch: kiwixSearch,
+    wikipediaRead: kiwixReadPage
+  },
+  toolsContext: {
+    wikipediaSearch: {
+      ...kiwixArchiveContext,
+      searchResultLimit: 5
+    },
+    wikipediaRead: {
+      ...kiwixArchiveContext,
+      readMaxBytes: 80 * 1024
+    }
   }
 });
 
@@ -48,30 +55,51 @@ console.log(result.text);
 
 ## Tools
 
-- `searchTool`: full-text search over the archive. Input is `{ query }`. Output is `results` with `title`, `path`, and optional `snippet`.
-- `readTool`: read a page by exact path returned from search. Input is `{ path }`. Output is `title`, `path`, `content`, and `truncated`.
+- `kiwixSearch`: full-text search over the archive. Input is `{ query }`. Output is `results` with `title`, `path`, and optional `snippet`.
+- `kiwixReadPage`: read a page by exact path returned from search. Input is `{ path }`. Output is `title`, `path`, `content`, and `truncated`.
 
-The model cannot choose result or read limits. Search result count and page byte limits are configured in `KiwixTools` constructor options so tool outputs stay predictable for agents. HTML pages are converted to UTF-8 text before returning them to the model.
+The model cannot choose result or read limits. Search result count and page byte limits are configured only on the tool that uses them through each tool's `toolsContext` entry, validated by that tool's `contextSchema`, so tool outputs stay predictable for agents. HTML pages are converted to UTF-8 text before returning them to the model.
 
 ## API
 
-Create both tools from one shared archive connection:
+Use the exported tools directly and pass tool-specific configuration through `toolsContext`:
 
 ```ts
-import { KiwixTools } from "@lgrammel/kiwix-tool";
+import { kiwixReadPage, kiwixSearch } from "@lgrammel/kiwix-tool";
 
-const kiwix = new KiwixTools({
-  zimPath: "~/opt/zim/wikipedia.zim",
-  searchResultLimit: 5,
-  readMaxBytes: 80 * 1024,
-  preloadXapianDb: true
-});
+const kiwixArchiveContext = {
+  zimPath: "~/opt/zim/wikipedia.zim"
+};
+
+const tools = {
+  wikipediaSearch: kiwixSearch,
+  wikipediaRead: kiwixReadPage
+};
+
+const toolsContext = {
+  wikipediaSearch: {
+    ...kiwixArchiveContext,
+    searchResultLimit: 5
+  },
+  wikipediaRead: {
+    ...kiwixArchiveContext,
+    readMaxBytes: 80 * 1024
+  }
+};
 ```
 
-## Options
+Each tool keeps its archive connection private and refreshes it if the archive context changes.
+
+## Shared Archive Context
 
 - `zimPath`: path to the `.zim` file. `~/` is expanded to the current user's home directory.
-- `searchResultLimit`: fixed number of search results returned to the agent. Defaults to `5` and is capped at `10`.
-- `readMaxBytes`: maximum page bytes read before conversion to text. Defaults to `81920` and is capped at `524288`.
-- `preloadXapianDb`: preload the full-text index when opening the archive.
+- `preloadXapianDb`: preload the full-text index when opening the archive. Defaults to `true`.
 - `preloadDirentRanges`: number of directory entry ranges to preload when opening the archive.
+
+## Search Context
+
+- `searchResultLimit`: fixed number of search results returned to the agent. Defaults to `5` and is capped at `10`.
+
+## Read Context
+
+- `readMaxBytes`: maximum page bytes read before conversion to text. Defaults to `81920` and is capped at `524288`.
