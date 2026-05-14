@@ -1,6 +1,6 @@
 {
   "name": "@lgrammel/kiwix-tool",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "AI SDK 7 tool for reading Kiwix/ZIM archives with Node.js libzim bindings.",
   "license": "MIT",
   "files": [
