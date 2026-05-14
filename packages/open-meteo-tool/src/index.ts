@@ -3,8 +3,6 @@ import { z } from "zod";
 
 const OPEN_METEO_API_BASE_URL = "https://api.open-meteo.com";
 const OPEN_METEO_GEOCODING_BASE_URL = "https://geocoding-api.open-meteo.com";
-const DEFAULT_LOCATION_RESULT_LIMIT = 5;
-const MAX_LOCATION_RESULT_LIMIT = 10;
 const DEFAULT_FORECAST_DAYS = 7;
 const MAX_FORECAST_DAYS = 16;
 const DEFAULT_HOURLY_FORECAST_HOURS = 24;
@@ -15,13 +13,11 @@ const temperatureUnitSchema = z.enum(["celsius", "fahrenheit"]);
 const windSpeedUnitSchema = z.enum(["kmh", "ms", "mph", "kn"]);
 const precipitationUnitSchema = z.enum(["mm", "inch"]);
 
-const weatherLocationSearchInputSchema = z.object({
-  query: z.string().min(1).describe("Place name, city, airport, or region to search for."),
-});
-
-const weatherForecastInputSchema = z.object({
-  latitude: z.number().min(-90).max(90).describe("Latitude of the forecast location."),
-  longitude: z.number().min(-180).max(180).describe("Longitude of the forecast location."),
+const weatherInputSchema = z.object({
+  query: z
+    .string()
+    .min(1)
+    .describe("Place name, city, airport, or region to resolve before fetching weather."),
 });
 
 const openMeteoContextSchema = z.object({
@@ -44,20 +40,8 @@ const openMeteoContextSchema = z.object({
     .describe("Optional User-Agent header for Open-Meteo requests."),
 });
 
-const weatherLocationSearchContextSchema = openMeteoContextSchema.extend({
-  locationResultLimit: z
-    .number()
-    .int()
-    .positive()
-    .max(MAX_LOCATION_RESULT_LIMIT)
-    .optional()
-    .describe(
-      "Fixed number of location candidates returned to the agent. Defaults to 5 and is capped at 10.",
-    ),
+const weatherContextSchema = openMeteoContextSchema.extend({
   language: z.string().min(1).optional().describe("Geocoding result language. Defaults to en."),
-});
-
-const weatherForecastContextSchema = openMeteoContextSchema.extend({
   forecastDays: z
     .number()
     .int()
@@ -195,8 +179,7 @@ const openMeteoForecastResponseSchema = z
   })
   .passthrough();
 
-type ParsedWeatherLocationSearchInput = z.output<typeof weatherLocationSearchInputSchema>;
-type ParsedWeatherForecastInput = z.output<typeof weatherForecastInputSchema>;
+type ParsedWeatherInput = z.output<typeof weatherInputSchema>;
 type OpenMeteoContext = z.output<typeof openMeteoContextSchema>;
 type OpenMeteoRawLocation = z.output<typeof openMeteoLocationResultSchema>;
 type OpenMeteoRawForecastResponse = z.output<typeof openMeteoForecastResponseSchema>;
@@ -204,8 +187,7 @@ type OpenMeteoRawCurrent = z.output<typeof openMeteoCurrentSchema>;
 type OpenMeteoRawHourly = z.output<typeof openMeteoHourlySchema>;
 type OpenMeteoRawDaily = z.output<typeof openMeteoDailySchema>;
 
-export type WeatherLocationSearchContext = z.output<typeof weatherLocationSearchContextSchema>;
-export type WeatherForecastContext = z.output<typeof weatherForecastContextSchema>;
+export type WeatherContext = z.output<typeof weatherContextSchema>;
 
 export interface WeatherLocation {
   id?: number;
@@ -222,10 +204,6 @@ export interface WeatherLocation {
   timezone?: string;
   population?: number;
   postcodes?: string[];
-}
-
-export interface WeatherLocationSearchOutput {
-  results: WeatherLocation[];
 }
 
 export interface WeatherCurrentReport {
@@ -303,141 +281,137 @@ export interface WeatherForecastOutput {
   hourly: WeatherHourlyForecast[];
 }
 
-class WeatherLocationSearchTool {
+export interface WeatherOutput {
+  location: WeatherLocation;
+  forecast: WeatherForecastOutput;
+}
+
+class WeatherTool {
   readonly description =
-    "Search Open-Meteo geocoding for weather locations. Returns coordinates and place metadata. Use weatherForecast with returned coordinates.";
-  readonly inputSchema = weatherLocationSearchInputSchema;
-  readonly contextSchema = weatherLocationSearchContextSchema;
+    "Resolve a place name through Open-Meteo geocoding, then fetch current weather, daily forecasts, and near-term hourly forecasts for the best matching location.";
+  readonly inputSchema = weatherInputSchema;
+  readonly contextSchema = weatherContextSchema;
 
   execute = async (
-    { query }: ParsedWeatherLocationSearchInput,
-    { context }: ToolExecutionOptions<WeatherLocationSearchContext>,
-  ): Promise<WeatherLocationSearchOutput> => {
-    const locationResultLimit = clampPositiveInteger(
-      context.locationResultLimit ?? DEFAULT_LOCATION_RESULT_LIMIT,
-      MAX_LOCATION_RESULT_LIMIT,
-    );
-    const response = openMeteoGeocodingResponseSchema.parse(
-      await getOpenMeteo(
-        "/v1/search",
-        context.geocodingBaseUrl ?? OPEN_METEO_GEOCODING_BASE_URL,
-        {
-          name: query,
-          count: String(locationResultLimit),
-          language: context.language ?? "en",
-          format: "json",
-        },
-        context,
-      ),
-    );
+    { query }: ParsedWeatherInput,
+    { context }: ToolExecutionOptions<WeatherContext>,
+  ): Promise<WeatherOutput> => {
+    const location = await resolveWeatherLocation(query, context);
+
+    if (!location) {
+      throw new Error(`Open-Meteo could not resolve a weather location for "${query}".`);
+    }
 
     return {
-      results: (response.results ?? [])
-        .map(normalizeLocation)
-        .filter(isDefined)
-        .slice(0, locationResultLimit),
+      location,
+      forecast: await fetchWeatherForecast(location.latitude, location.longitude, context),
     };
   };
 }
 
-class WeatherForecastTool {
-  readonly description =
-    "Fetch current weather, daily forecasts, and near-term hourly forecasts from Open-Meteo for exact coordinates.";
-  readonly inputSchema = weatherForecastInputSchema;
-  readonly contextSchema = weatherForecastContextSchema;
+export const weather: Tool<ParsedWeatherInput, WeatherOutput, WeatherContext> = new WeatherTool();
 
-  execute = async (
-    { latitude, longitude }: ParsedWeatherForecastInput,
-    { context }: ToolExecutionOptions<WeatherForecastContext>,
-  ): Promise<WeatherForecastOutput> => {
-    const forecastDays = clampPositiveInteger(
-      context.forecastDays ?? DEFAULT_FORECAST_DAYS,
-      MAX_FORECAST_DAYS,
-    );
-    const hourlyForecastHours = clampNonnegativeInteger(
-      context.hourlyForecastHours ?? DEFAULT_HOURLY_FORECAST_HOURS,
-      HARD_HOURLY_FORECAST_HOURS,
-    );
-    const response = openMeteoForecastResponseSchema.parse(
-      await getOpenMeteo(
-        "/v1/forecast",
-        context.baseUrl ?? OPEN_METEO_API_BASE_URL,
-        {
-          latitude: String(latitude),
-          longitude: String(longitude),
-          timezone: context.timezone ?? "auto",
-          forecast_days: String(forecastDays),
-          temperature_unit: context.temperatureUnit,
-          wind_speed_unit: context.windSpeedUnit,
-          precipitation_unit: context.precipitationUnit,
-          current: [
-            "temperature_2m",
-            "relative_humidity_2m",
-            "apparent_temperature",
-            "is_day",
-            "precipitation",
-            "rain",
-            "showers",
-            "snowfall",
-            "weather_code",
-            "cloud_cover",
-            "pressure_msl",
-            "surface_pressure",
-            "wind_speed_10m",
-            "wind_direction_10m",
-            "wind_gusts_10m",
-          ].join(","),
-          hourly:
-            hourlyForecastHours > 0
-              ? [
-                  "temperature_2m",
-                  "apparent_temperature",
-                  "precipitation_probability",
-                  "precipitation",
-                  "weather_code",
-                  "cloud_cover",
-                  "wind_speed_10m",
-                  "wind_direction_10m",
-                ].join(",")
-              : undefined,
-          daily: [
-            "weather_code",
-            "temperature_2m_max",
-            "temperature_2m_min",
-            "apparent_temperature_max",
-            "apparent_temperature_min",
-            "sunrise",
-            "sunset",
-            "uv_index_max",
-            "precipitation_sum",
-            "rain_sum",
-            "showers_sum",
-            "snowfall_sum",
-            "precipitation_probability_max",
-            "wind_speed_10m_max",
-            "wind_gusts_10m_max",
-            "wind_direction_10m_dominant",
-          ].join(","),
-        },
-        context,
-      ),
-    );
+async function resolveWeatherLocation(
+  query: string,
+  context: WeatherContext,
+): Promise<WeatherLocation | undefined> {
+  const response = openMeteoGeocodingResponseSchema.parse(
+    await getOpenMeteo(
+      "/v1/search",
+      context.geocodingBaseUrl ?? OPEN_METEO_GEOCODING_BASE_URL,
+      {
+        name: query,
+        count: "1",
+        language: context.language ?? "en",
+        format: "json",
+      },
+      context,
+    ),
+  );
 
-    return normalizeForecast(response, hourlyForecastHours);
-  };
+  return (response.results ?? []).map(normalizeLocation).find(isDefined);
 }
 
-export const weatherLocationSearch: Tool<
-  ParsedWeatherLocationSearchInput,
-  WeatherLocationSearchOutput,
-  WeatherLocationSearchContext
-> = new WeatherLocationSearchTool();
+async function fetchWeatherForecast(
+  latitude: number,
+  longitude: number,
+  context: WeatherContext,
+): Promise<WeatherForecastOutput> {
+  const forecastDays = clampPositiveInteger(
+    context.forecastDays ?? DEFAULT_FORECAST_DAYS,
+    MAX_FORECAST_DAYS,
+  );
+  const hourlyForecastHours = clampNonnegativeInteger(
+    context.hourlyForecastHours ?? DEFAULT_HOURLY_FORECAST_HOURS,
+    HARD_HOURLY_FORECAST_HOURS,
+  );
+  const response = openMeteoForecastResponseSchema.parse(
+    await getOpenMeteo(
+      "/v1/forecast",
+      context.baseUrl ?? OPEN_METEO_API_BASE_URL,
+      {
+        latitude: String(latitude),
+        longitude: String(longitude),
+        timezone: context.timezone ?? "auto",
+        forecast_days: String(forecastDays),
+        temperature_unit: context.temperatureUnit,
+        wind_speed_unit: context.windSpeedUnit,
+        precipitation_unit: context.precipitationUnit,
+        current: [
+          "temperature_2m",
+          "relative_humidity_2m",
+          "apparent_temperature",
+          "is_day",
+          "precipitation",
+          "rain",
+          "showers",
+          "snowfall",
+          "weather_code",
+          "cloud_cover",
+          "pressure_msl",
+          "surface_pressure",
+          "wind_speed_10m",
+          "wind_direction_10m",
+          "wind_gusts_10m",
+        ].join(","),
+        hourly:
+          hourlyForecastHours > 0
+            ? [
+                "temperature_2m",
+                "apparent_temperature",
+                "precipitation_probability",
+                "precipitation",
+                "weather_code",
+                "cloud_cover",
+                "wind_speed_10m",
+                "wind_direction_10m",
+              ].join(",")
+            : undefined,
+        daily: [
+          "weather_code",
+          "temperature_2m_max",
+          "temperature_2m_min",
+          "apparent_temperature_max",
+          "apparent_temperature_min",
+          "sunrise",
+          "sunset",
+          "uv_index_max",
+          "precipitation_sum",
+          "rain_sum",
+          "showers_sum",
+          "snowfall_sum",
+          "precipitation_probability_max",
+          "wind_speed_10m_max",
+          "wind_gusts_10m_max",
+          "wind_direction_10m_dominant",
+        ].join(","),
+      },
+      context,
+    ),
+  );
 
-export const weatherForecast: Tool<
-  ParsedWeatherForecastInput,
-  WeatherForecastOutput,
-  WeatherForecastContext
-> = new WeatherForecastTool();
+  return normalizeForecast(response, hourlyForecastHours);
+}
 
 async function getOpenMeteo(
   path: "/v1/search" | "/v1/forecast",
