@@ -1,6 +1,6 @@
 {
   "name": "@lgrammel/current-date-tool",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "AI SDK 7 tool for returning the current date and time in a configured timezone.",
   "license": "MIT",
   "files": [
