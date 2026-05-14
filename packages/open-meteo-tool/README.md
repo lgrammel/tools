@@ -24,6 +24,11 @@ const agent = new ToolLoopAgent({
   tools: {
     weather,
   },
+  toolsContext: {
+    weather: {
+      temperatureUnit: "celsius",
+    },
+  },
 });
 
 const result = await agent.generate({

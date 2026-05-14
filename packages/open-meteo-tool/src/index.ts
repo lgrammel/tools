@@ -64,7 +64,7 @@ const weatherContextSchema = openMeteoContextSchema.extend({
     .optional()
     .describe("Timezone used by Open-Meteo for forecast timestamps. Defaults to auto."),
   temperatureUnit: temperatureUnitSchema
-    .optional()
+    .default("celsius")
     .describe("Temperature unit. Defaults to celsius."),
   windSpeedUnit: windSpeedUnitSchema.optional().describe("Wind speed unit. Defaults to kmh."),
   precipitationUnit: precipitationUnitSchema

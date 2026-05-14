@@ -22,13 +22,15 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "test:type": "vitest --typecheck.only",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "ai": "^7.0.0-canary.133"
+    "ai": "^7.0.0-canary.133",
+    "vitest": "4.1.6"
   },
   "peerDependencies": {
     "ai": "^7.0.0-canary.133"
