@@ -8,12 +8,16 @@
   "type": "module",
   "scripts": {
     "build": "bun run --filter '*' build",
+    "changeset": "changeset",
     "format": "oxfmt --write \"**/*.{js,jsx,ts,tsx,json,jsonc}\"",
     "format:check": "oxfmt --check \"**/*.{js,jsx,ts,tsx,json,jsonc}\"",
     "prepare": "husky",
+    "release": "bun run build && changeset publish",
+    "version": "changeset version",
     "typecheck": "bun run --filter '*' typecheck"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "@types/node": "^25.6.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
