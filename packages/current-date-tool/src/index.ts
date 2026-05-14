@@ -21,39 +21,14 @@ export interface CurrentDateOutput {
   iso: string;
 
   /**
-   * The IANA timezone used for the localized fields.
+   * Timezone abbreviation for the current instant.
    */
-  timezone: string;
-
-  /**
-   * Localized date in YYYY-MM-DD format.
-   */
-  date: string;
-
-  /**
-   * Localized time in HH:mm:ss format.
-   */
-  time: string;
+  timezoneName: string;
 
   /**
    * Localized date and time in YYYY-MM-DDTHH:mm:ss format.
    */
-  dateTime: string;
-
-  /**
-   * Offset from UTC at the current instant, such as +01:00.
-   */
-  utcOffset: string;
-
-  /**
-   * Timezone abbreviation for the current instant, when available.
-   */
-  timezoneName?: string;
-
-  /**
-   * Current Unix timestamp in milliseconds.
-   */
-  timestamp: number;
+  datetime: string;
 }
 
 class CurrentDateTool {
@@ -83,13 +58,8 @@ function formatCurrentDate(now: Date, timezone: string): CurrentDateOutput {
 
   return {
     iso: now.toISOString(),
-    timezone,
-    date,
-    time,
-    dateTime: `${date}T${time}`,
-    utcOffset: getUtcOffset(now, timezone),
     timezoneName,
-    timestamp: now.getTime(),
+    datetime: `${date}T${time}`,
   };
 }
 
@@ -125,32 +95,19 @@ function getDateTimeParts(
   };
 }
 
-function getTimezoneName(date: Date, timezone: string): string | undefined {
-  return new Intl.DateTimeFormat("en", {
+function getTimezoneName(date: Date, timezone: string): string {
+  const value = new Intl.DateTimeFormat("en", {
     timeZone: timezone,
     timeZoneName: "short",
   })
     .formatToParts(date)
     .find((part) => part.type === "timeZoneName")?.value;
-}
 
-function getUtcOffset(date: Date, timezone: string): string {
-  const parts = getDateTimeParts(date, timezone);
-  const utcMilliseconds = Date.UTC(
-    Number(parts.year),
-    Number(parts.month) - 1,
-    Number(parts.day),
-    Number(parts.hour),
-    Number(parts.minute),
-    Number(parts.second),
-  );
-  const offsetMinutes = Math.round((utcMilliseconds - date.getTime()) / 60_000);
-  const sign = offsetMinutes >= 0 ? "+" : "-";
-  const absoluteOffsetMinutes = Math.abs(offsetMinutes);
-  const hours = String(Math.trunc(absoluteOffsetMinutes / 60)).padStart(2, "0");
-  const minutes = String(absoluteOffsetMinutes % 60).padStart(2, "0");
+  if (!value) {
+    throw new Error(`Unable to format timezone name for timezone ${timezone}.`);
+  }
 
-  return `${sign}${hours}:${minutes}`;
+  return value;
 }
 
 function getRequiredPart(
