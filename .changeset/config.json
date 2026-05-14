@@ -10,6 +10,7 @@
   "ignore": [
     "@lgrammel/exa-search-tool-example",
     "@lgrammel/js-code-executor-tool-example",
-    "@lgrammel/kiwix-tool-example"
+    "@lgrammel/kiwix-tool-example",
+    "@lgrammel/open-meteo-tool-example"
   ]
 }
