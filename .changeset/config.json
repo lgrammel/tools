@@ -8,6 +8,7 @@
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": [
+    "@lgrammel/current-date-tool-example",
     "@lgrammel/exa-search-tool-example",
     "@lgrammel/js-code-executor-tool-example",
     "@lgrammel/kiwix-tool-example",

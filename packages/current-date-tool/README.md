@@ -1,0 +1,67 @@
+# @lgrammel/current-date-tool
+
+AI SDK 7 tool package for returning the current date and time in a configured timezone.
+
+Use it when an agent needs to answer questions about today, now, deadlines, or relative dates. The model cannot choose the timezone; it is configured through the tool context.
+
+## Installation
+
+```bash
+bun add @lgrammel/current-date-tool
+```
+
+## Usage
+
+```ts
+import { openai } from "@ai-sdk/openai";
+import { currentDate } from "@lgrammel/current-date-tool";
+import { ToolLoopAgent } from "ai";
+
+const agent = new ToolLoopAgent({
+  model: openai("gpt-5.5"),
+  instructions:
+    "Use the current date tool whenever you need today's date, the current time, or relative dates. Mention the timezone when it matters.",
+  tools: {
+    currentDate,
+  },
+  toolsContext: {
+    currentDate: {
+      timezone: "Europe/Berlin",
+    },
+  },
+});
+
+const result = await agent.generate({
+  prompt: "What date is next Friday?",
+});
+
+console.log(result.text);
+```
+
+## Tools
+
+- `currentDate`: returns the current instant as UTC ISO, the configured timezone, localized date, localized time, localized date-time, UTC offset, timezone abbreviation, and timestamp. Input is `{}`.
+
+The timezone is configured through the tool's `toolsContext` entry and validated by the tool's `contextSchema`, so the model cannot silently switch timezones.
+
+## API
+
+Use the exported tool directly and pass the timezone through `toolsContext`:
+
+```ts
+import { currentDate } from "@lgrammel/current-date-tool";
+
+const tools = {
+  currentDate,
+};
+
+const toolsContext = {
+  currentDate: {
+    timezone: "Europe/Berlin",
+  },
+};
+```
+
+## Current Date Context
+
+- `timezone`: IANA timezone used to format the current date and time, for example `Europe/Berlin`, `America/New_York`, or `UTC`.

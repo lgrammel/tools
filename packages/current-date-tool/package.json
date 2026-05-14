@@ -1,0 +1,38 @@
+{
+  "name": "@lgrammel/current-date-tool",
+  "version": "0.1.0",
+  "description": "AI SDK 7 tool for returning the current date and time in a configured timezone.",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test:type": "vitest --typecheck.only",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "ai": "^7.0.0-canary.133",
+    "vitest": "4.1.6"
+  },
+  "peerDependencies": {
+    "ai": "^7.0.0-canary.133"
+  }
+}
