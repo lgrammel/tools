@@ -16,7 +16,7 @@ new ToolLoopAgent({
     weather,
   },
   toolsContext: {
-    // @ts-expect-error weather requires temperatureUnit.
+    // @ts-expect-error weather requires units.
     weather: {
       language: "en",
     },
@@ -31,7 +31,7 @@ expectTypeOf(
     },
     toolsContext: {
       weather: {
-        temperatureUnit: "celsius",
+        units: "metric",
         language: "en",
         forecastDays: 7,
         hourlyForecastHours: 24,

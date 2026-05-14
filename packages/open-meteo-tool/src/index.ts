@@ -9,9 +9,7 @@ const DEFAULT_HOURLY_FORECAST_HOURS = 24;
 const HARD_HOURLY_FORECAST_HOURS = 16 * 24;
 const MAX_ERROR_BODY_LENGTH = 1_000;
 
-const temperatureUnitSchema = z.enum(["celsius", "fahrenheit"]);
-const windSpeedUnitSchema = z.enum(["kmh", "ms", "mph", "kn"]);
-const precipitationUnitSchema = z.enum(["mm", "inch"]);
+const unitSystemSchema = z.enum(["metric", "imperial"]);
 
 const weatherInputSchema = z.object({
   query: z
@@ -63,13 +61,11 @@ const weatherContextSchema = openMeteoContextSchema.extend({
     .min(1)
     .optional()
     .describe("Timezone used by Open-Meteo for forecast timestamps. Defaults to auto."),
-  temperatureUnit: temperatureUnitSchema
-    .default("celsius")
-    .describe("Temperature unit. Defaults to celsius."),
-  windSpeedUnit: windSpeedUnitSchema.optional().describe("Wind speed unit. Defaults to kmh."),
-  precipitationUnit: precipitationUnitSchema
-    .optional()
-    .describe("Precipitation unit. Defaults to mm."),
+  units: unitSystemSchema
+    .default("metric")
+    .describe(
+      "Unit system. Metric uses celsius, millimeters, and km/h; imperial uses fahrenheit, inches, and mph.",
+    ),
 });
 
 const openMeteoLocationResultSchema = z
@@ -99,7 +95,7 @@ const openMeteoGeocodingResponseSchema = z
   })
   .passthrough();
 
-const unitsSchema = z.record(z.string(), z.string());
+const forecastUnitsSchema = z.record(z.string(), z.string());
 const nullableNumberArraySchema = z.array(z.number().nullable());
 const nullableStringArraySchema = z.array(z.string().nullable());
 
@@ -170,11 +166,11 @@ const openMeteoForecastResponseSchema = z
     timezone: z.string().optional(),
     timezone_abbreviation: z.string().optional(),
     elevation: z.number().optional(),
-    current_units: unitsSchema.optional(),
+    current_units: forecastUnitsSchema.optional(),
     current: openMeteoCurrentSchema.optional(),
-    hourly_units: unitsSchema.optional(),
+    hourly_units: forecastUnitsSchema.optional(),
     hourly: openMeteoHourlySchema.optional(),
-    daily_units: unitsSchema.optional(),
+    daily_units: forecastUnitsSchema.optional(),
     daily: openMeteoDailySchema.optional(),
   })
   .passthrough();
@@ -342,6 +338,7 @@ async function fetchWeatherForecast(
     context.hourlyForecastHours ?? DEFAULT_HOURLY_FORECAST_HOURS,
     HARD_HOURLY_FORECAST_HOURS,
   );
+  const units = getOpenMeteoUnits(context.units);
   const response = openMeteoForecastResponseSchema.parse(
     await getOpenMeteo(
       "/v1/forecast",
@@ -351,9 +348,9 @@ async function fetchWeatherForecast(
         longitude: String(longitude),
         timezone: context.timezone ?? "auto",
         forecast_days: String(forecastDays),
-        temperature_unit: context.temperatureUnit,
-        wind_speed_unit: context.windSpeedUnit,
-        precipitation_unit: context.precipitationUnit,
+        temperature_unit: units.temperatureUnit,
+        wind_speed_unit: units.windSpeedUnit,
+        precipitation_unit: units.precipitationUnit,
         current: [
           "temperature_2m",
           "relative_humidity_2m",
@@ -408,6 +405,26 @@ async function fetchWeatherForecast(
   );
 
   return normalizeForecast(response, hourlyForecastHours);
+}
+
+function getOpenMeteoUnits(units: WeatherContext["units"]): {
+  temperatureUnit: "celsius" | "fahrenheit";
+  windSpeedUnit: "kmh" | "mph";
+  precipitationUnit: "mm" | "inch";
+} {
+  if (units === "imperial") {
+    return {
+      temperatureUnit: "fahrenheit",
+      windSpeedUnit: "mph",
+      precipitationUnit: "inch",
+    };
+  }
+
+  return {
+    temperatureUnit: "celsius",
+    windSpeedUnit: "kmh",
+    precipitationUnit: "mm",
+  };
 }
 
 async function getOpenMeteo(

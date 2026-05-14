@@ -13,7 +13,7 @@ const agent = new ToolLoopAgent({
   },
   toolsContext: {
     weather: {
-      temperatureUnit: "celsius",
+      units: "metric",
       language: "en",
       forecastDays: 7,
       hourlyForecastHours: 24,

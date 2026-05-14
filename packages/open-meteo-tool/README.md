@@ -26,7 +26,7 @@ const agent = new ToolLoopAgent({
   },
   toolsContext: {
     weather: {
-      temperatureUnit: "celsius",
+      units: "metric",
     },
   },
 });
@@ -61,9 +61,7 @@ const toolsContext = {
     forecastDays: 7,
     hourlyForecastHours: 24,
     timezone: "auto",
-    temperatureUnit: "celsius",
-    windSpeedUnit: "kmh",
-    precipitationUnit: "mm",
+    units: "metric",
   },
 };
 ```
@@ -80,6 +78,4 @@ const toolsContext = {
 - `forecastDays`: number of forecast days to request. Defaults to `7` and is capped at `16`.
 - `hourlyForecastHours`: number of hourly forecast entries returned from the start of the forecast. Defaults to `24` and is capped at `384`. Use `0` to omit hourly output.
 - `timezone`: timezone used by Open-Meteo for forecast timestamps. Defaults to `auto`.
-- `temperatureUnit`: temperature unit. Defaults to `celsius`.
-- `windSpeedUnit`: wind speed unit. Defaults to `kmh`.
-- `precipitationUnit`: precipitation unit. Defaults to `mm`.
+- `units`: unit system. `metric` uses celsius, millimeters, and km/h; `imperial` uses fahrenheit, inches, and mph.
