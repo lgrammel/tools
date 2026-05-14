@@ -43,6 +43,16 @@
         "dotenv": "^17.4.2",
       },
     },
+    "examples/open-meteo-tool": {
+      "name": "@lgrammel/open-meteo-tool-example",
+      "dependencies": {
+        "@ai-sdk/openai": "4.0.0-canary.55",
+        "@lgrammel/agent-tui": "^0.2.0",
+        "@lgrammel/open-meteo-tool": "workspace:*",
+        "ai": "7.0.0-canary.133",
+        "dotenv": "^17.4.2",
+      },
+    },
     "packages/exa-search-tool": {
       "name": "@lgrammel/exa-search-tool",
       "version": "0.1.0",
@@ -79,6 +89,19 @@
       },
       "devDependencies": {
         "@types/html-to-text": "^9.0.4",
+        "ai": "^7.0.0-canary.133",
+      },
+      "peerDependencies": {
+        "ai": "^7.0.0-canary.133",
+      },
+    },
+    "packages/open-meteo-tool": {
+      "name": "@lgrammel/open-meteo-tool",
+      "version": "0.1.0",
+      "dependencies": {
+        "zod": "^4.4.3",
+      },
+      "devDependencies": {
         "ai": "^7.0.0-canary.133",
       },
       "peerDependencies": {
@@ -177,6 +200,10 @@
     "@lgrammel/kiwix-tool": ["@lgrammel/kiwix-tool@workspace:packages/kiwix-tool"],
 
     "@lgrammel/kiwix-tool-example": ["@lgrammel/kiwix-tool-example@workspace:examples/kiwix-tool"],
+
+    "@lgrammel/open-meteo-tool": ["@lgrammel/open-meteo-tool@workspace:packages/open-meteo-tool"],
+
+    "@lgrammel/open-meteo-tool-example": ["@lgrammel/open-meteo-tool-example@workspace:examples/open-meteo-tool"],
 
     "@manypkg/find-root": ["@manypkg/find-root@1.1.0", "", { "dependencies": { "@babel/runtime": "^7.5.5", "@types/node": "^12.7.1", "find-up": "^4.1.0", "fs-extra": "^8.1.0" } }, "sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA=="],
 
