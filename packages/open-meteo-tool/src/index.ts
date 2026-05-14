@@ -217,7 +217,6 @@ export interface WeatherCurrentReport {
   rain?: number;
   showers?: number;
   snowfall?: number;
-  weatherCode?: number;
   weatherDescription?: string;
   cloudCover?: number;
   pressureMsl?: number;
@@ -229,7 +228,6 @@ export interface WeatherCurrentReport {
 
 export interface WeatherDailyForecast {
   date: string;
-  weatherCode?: number;
   weatherDescription?: string;
   temperature2mMax?: number;
   temperature2mMin?: number;
@@ -254,7 +252,6 @@ export interface WeatherHourlyForecast {
   apparentTemperature?: number;
   precipitationProbability?: number;
   precipitation?: number;
-  weatherCode?: number;
   weatherDescription?: string;
   cloudCover?: number;
   windSpeed10m?: number;
@@ -507,8 +504,6 @@ function normalizeCurrentReport(
     return undefined;
   }
 
-  const weatherCode = toInteger(current.weather_code);
-
   return {
     time: current.time,
     intervalSeconds: current.interval,
@@ -520,8 +515,7 @@ function normalizeCurrentReport(
     rain: toNumber(current.rain),
     showers: toNumber(current.showers),
     snowfall: toNumber(current.snowfall),
-    weatherCode,
-    weatherDescription: describeWeatherCode(weatherCode),
+    weatherDescription: describeWeatherCode(current.weather_code),
     cloudCover: toNumber(current.cloud_cover),
     pressureMsl: toNumber(current.pressure_msl),
     surfacePressure: toNumber(current.surface_pressure),
@@ -542,12 +536,9 @@ function normalizeDailyForecasts(daily: OpenMeteoRawDaily | undefined): WeatherD
       continue;
     }
 
-    const weatherCode = toInteger(getNumberValue(daily?.weather_code, index));
-
     forecasts.push({
       date,
-      weatherCode,
-      weatherDescription: describeWeatherCode(weatherCode),
+      weatherDescription: describeWeatherCode(getNumberValue(daily?.weather_code, index)),
       temperature2mMax: getNumberValue(daily?.temperature_2m_max, index),
       temperature2mMin: getNumberValue(daily?.temperature_2m_min, index),
       apparentTemperatureMax: getNumberValue(daily?.apparent_temperature_max, index),
@@ -587,16 +578,13 @@ function normalizeHourlyForecasts(
       continue;
     }
 
-    const weatherCode = toInteger(getNumberValue(hourly?.weather_code, index));
-
     forecasts.push({
       time,
       temperature2m: getNumberValue(hourly?.temperature_2m, index),
       apparentTemperature: getNumberValue(hourly?.apparent_temperature, index),
       precipitationProbability: getNumberValue(hourly?.precipitation_probability, index),
       precipitation: getNumberValue(hourly?.precipitation, index),
-      weatherCode,
-      weatherDescription: describeWeatherCode(weatherCode),
+      weatherDescription: describeWeatherCode(getNumberValue(hourly?.weather_code, index)),
       cloudCover: getNumberValue(hourly?.cloud_cover, index),
       windSpeed10m: getNumberValue(hourly?.wind_speed_10m, index),
       windDirection10m: getNumberValue(hourly?.wind_direction_10m, index),
@@ -626,16 +614,12 @@ function toNumber(value: number | null | undefined): number | undefined {
   return typeof value === "number" ? value : undefined;
 }
 
-function toInteger(value: number | null | undefined): number | undefined {
-  return typeof value === "number" ? Math.trunc(value) : undefined;
-}
-
 function toDayBoolean(value: number | null | undefined): boolean | undefined {
   return typeof value === "number" ? value === 1 : undefined;
 }
 
-function describeWeatherCode(code: number | undefined): string | undefined {
-  switch (code) {
+function describeWeatherCode(code: number | null | undefined): string | undefined {
+  switch (typeof code === "number" ? Math.trunc(code) : undefined) {
     case 0:
       return "Clear sky";
     case 1:
