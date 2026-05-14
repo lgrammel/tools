@@ -1,5 +1,11 @@
 # @lgrammel/current-date-tool
 
+## 0.3.0
+
+### Minor Changes
+
+- 9447cea: Simplify the current date tool output to return only `iso`, `timezoneName`, and `datetime`.
+
 ## 0.2.0
 
 ### Minor Changes
