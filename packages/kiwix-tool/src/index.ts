@@ -7,6 +7,8 @@ import { z } from "zod";
 
 const DEFAULT_SEARCH_RESULT_LIMIT = 5;
 const MAX_SEARCH_RESULT_LIMIT = 10;
+const DEFAULT_SEARCH_CANDIDATE_LIMIT = 100;
+const MAX_SEARCH_CANDIDATE_LIMIT = 500;
 const DEFAULT_READ_MAX_BYTES = 80 * 1024;
 const HARD_READ_MAX_BYTES = 512 * 1024;
 const MAX_SNIPPET_LENGTH = 600;
@@ -50,6 +52,15 @@ const kiwixSearchContextSchema = kiwixArchiveContextSchema.extend({
     .describe(
       "Fixed number of search results returned to the agent. Defaults to 5 and is capped at 10.",
     ),
+  searchCandidateLimit: z
+    .number()
+    .int()
+    .positive()
+    .max(MAX_SEARCH_CANDIDATE_LIMIT)
+    .optional()
+    .describe(
+      "Number of raw libzim results fetched before title-aware reranking. Defaults to 100 and is capped at 500.",
+    ),
 });
 
 const kiwixReadPageContextSchema = kiwixArchiveContextSchema.extend({
@@ -72,6 +83,11 @@ interface KiwixSearchResult {
   title: string;
   path: string;
   snippet?: string;
+}
+
+interface RankedKiwixSearchResult extends KiwixSearchResult {
+  score: number;
+  index: number;
 }
 
 interface KiwixSearchOutput {
@@ -142,13 +158,26 @@ class KiwixSearchTool {
     const searchResultLimit = clampSearchResultLimit(
       context.searchResultLimit ?? DEFAULT_SEARCH_RESULT_LIMIT,
     );
+    const searchCandidateLimit = clampSearchCandidateLimit(
+      Math.max(context.searchCandidateLimit ?? DEFAULT_SEARCH_CANDIDATE_LIMIT, searchResultLimit),
+    );
     const results = Array.from(
-      search.getResults(0, searchResultLimit) as Iterable<SearchIterator>,
-    ).map((result) => ({
-      title: result.title,
-      path: result.path,
-      snippet: cleanSnippet(result.snippet),
-    }));
+      search.getResults(0, searchCandidateLimit) as Iterable<SearchIterator>,
+    )
+      .map<RankedKiwixSearchResult>((result, index) => ({
+        title: result.title,
+        path: result.path,
+        snippet: cleanSnippet(result.snippet),
+        score: scoreSearchResult(query, result.title, result.path),
+        index,
+      }))
+      .sort((a, b) => b.score - a.score || a.index - b.index)
+      .slice(0, searchResultLimit)
+      .map(({ title, path, snippet }) => ({
+        title,
+        path,
+        snippet,
+      }));
 
     return { results };
   };
@@ -265,6 +294,76 @@ function cleanSnippet(snippet: string): string | undefined {
   return text.length > MAX_SNIPPET_LENGTH ? `${text.slice(0, MAX_SNIPPET_LENGTH).trim()}...` : text;
 }
 
+function scoreSearchResult(query: string, title: string, path: string): number {
+  const normalizedQuery = normalizeSearchText(query);
+
+  if (!normalizedQuery) {
+    return 0;
+  }
+
+  const normalizedTitle = normalizeSearchText(title);
+  const normalizedPathTitle = normalizePathTitle(path);
+  const queryTerms = normalizedQuery.split(" ");
+  let score = 0;
+
+  if (normalizedTitle === normalizedQuery) {
+    score += 1000;
+  }
+
+  if (normalizedPathTitle === normalizedQuery) {
+    score += 900;
+  }
+
+  if (normalizedTitle.startsWith(`${normalizedQuery} `)) {
+    score += 700;
+  }
+
+  if (normalizedPathTitle.startsWith(`${normalizedQuery} `)) {
+    score += 600;
+  }
+
+  if (normalizedTitle.includes(normalizedQuery)) {
+    score += 300;
+  }
+
+  if (normalizedPathTitle.includes(normalizedQuery)) {
+    score += 200;
+  }
+
+  for (const term of queryTerms) {
+    if (normalizedTitle.includes(term)) {
+      score += 20;
+    }
+
+    if (normalizedPathTitle.includes(term)) {
+      score += 10;
+    }
+  }
+
+  return score;
+}
+
+function normalizePathTitle(path: string): string {
+  const pathTitle = path.split("/").pop() ?? path;
+
+  try {
+    return normalizeSearchText(decodeURIComponent(pathTitle.replace(/\.[^.]+$/, "")));
+  } catch {
+    return normalizeSearchText(pathTitle.replace(/\.[^.]+$/, ""));
+  }
+}
+
+function normalizeSearchText(text: string): string {
+  return text
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[_-]+/g, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function isTextMimeType(mimeType: string): boolean {
   return (
     mimeType.startsWith("text/") ||
@@ -295,6 +394,10 @@ function resolveHomePath(path: string): string {
 
 function clampSearchResultLimit(limit: number): number {
   return Math.min(Math.max(Math.trunc(limit), 1), MAX_SEARCH_RESULT_LIMIT);
+}
+
+function clampSearchCandidateLimit(limit: number): number {
+  return Math.min(Math.max(Math.trunc(limit), 1), MAX_SEARCH_CANDIDATE_LIMIT);
 }
 
 function clampReadMaxBytes(maxBytes: number): number {

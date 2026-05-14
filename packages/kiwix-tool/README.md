@@ -37,7 +37,8 @@ const agent = new ToolLoopAgent({
   toolsContext: {
     wikipediaSearch: {
       ...kiwixArchiveContext,
-      searchResultLimit: 5
+      searchResultLimit: 5,
+      searchCandidateLimit: 100
     },
     wikipediaRead: {
       ...kiwixArchiveContext,
@@ -55,10 +56,10 @@ console.log(result.text);
 
 ## Tools
 
-- `kiwixSearch`: full-text search over the archive. Input is `{ query }`. Output is `results` with `title`, `path`, and optional `snippet`.
+- `kiwixSearch`: full-text search over the archive. It fetches a configurable number of raw libzim results, reranks them to prefer exact and prefix title/path matches, then returns the configured number of results. Input is `{ query }`. Output is `results` with `title`, `path`, and optional `snippet`.
 - `kiwixReadPage`: read a page by exact path returned from search. Input is `{ path }`. Output is `title`, `path`, `content`, and `truncated`.
 
-The model cannot choose result or read limits. Search result count and page byte limits are configured only on the tool that uses them through each tool's `toolsContext` entry, validated by that tool's `contextSchema`, so tool outputs stay predictable for agents. HTML pages are converted to UTF-8 text before returning them to the model.
+The model cannot choose result, candidate, or read limits. Search result count, internal search candidate count, and page byte limits are configured only on the tool that uses them through each tool's `toolsContext` entry, validated by that tool's `contextSchema`, so tool outputs stay predictable for agents. HTML pages are converted to UTF-8 text before returning them to the model.
 
 ## API
 
@@ -79,7 +80,8 @@ const tools = {
 const toolsContext = {
   wikipediaSearch: {
     ...kiwixArchiveContext,
-    searchResultLimit: 5
+    searchResultLimit: 5,
+    searchCandidateLimit: 100
   },
   wikipediaRead: {
     ...kiwixArchiveContext,
@@ -99,6 +101,7 @@ Each tool keeps its archive connection private and refreshes it if the archive c
 ## Search Context
 
 - `searchResultLimit`: fixed number of search results returned to the agent. Defaults to `5` and is capped at `10`.
+- `searchCandidateLimit`: number of raw libzim results fetched before title-aware reranking. Defaults to `100` and is capped at `500`. The effective candidate limit is never lower than `searchResultLimit`.
 
 ## Read Context
 
