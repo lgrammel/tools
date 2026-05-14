@@ -4,19 +4,12 @@ Interactive terminal UI for asking questions against a local Kiwix/ZIM archive w
 
 ## Setup
 
-Install workspace dependencies from the repository root:
-
 ```bash
 bun install
-```
-
-Create an example environment file:
-
-```bash
 cp examples/kiwix-tool/.env.example examples/kiwix-tool/.env
 ```
 
-Set `OPENAI_API_KEY` and `WIKIPEDIA_ZIM_PATH` in `examples/kiwix-tool/.env`. `WIKIPEDIA_ZIM_PATH` must point to an absolute path for a local `.zim` archive.
+Set `OPENAI_API_KEY` and `WIKIPEDIA_ZIM_PATH` in `examples/kiwix-tool/.env`. `WIKIPEDIA_ZIM_PATH` must point to a local `.zim` archive.
 
 ## Run
 
@@ -24,11 +17,4 @@ Set `OPENAI_API_KEY` and `WIKIPEDIA_ZIM_PATH` in `examples/kiwix-tool/.env`. `WI
 bun run --cwd examples/kiwix-tool start
 ```
 
-The app opens an interactive terminal UI rendered by `@lgrammel/agent-tui`. Ask a question, then the agent searches and reads the local archive before answering.
-
-## Controls
-
-- `Enter`: submit prompt
-- `Up` / `Down`: scroll transcript
-- `Ctrl+R`: repaint
-- `Ctrl+C`: exit
+Ask a question about the archive. The app renders an interactive terminal UI through `@lgrammel/agent-tui`; the agent searches and reads local pages before answering.

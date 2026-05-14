@@ -1,13 +1,11 @@
-# JavaScript Code Executor Tool
+# @lgrammel/js-code-executor-tool
 
-AI SDK 7 tool for executing JavaScript code in an in-process Node.js `vm` context.
+AI SDK 7 tool for executing JavaScript code in an in-process Node.js `vm` context. Use it only with trusted agents and prompts: `node:vm` is not a security boundary for hostile code.
 
-Use this tool only with trusted agents and prompts. It uses Node's built-in `vm` module with a curated global object, timeout, copied `context`, and captured `console`, but `node:vm` is not a security boundary for hostile code.
-
-## Installation
+## Install
 
 ```bash
-bun add @lgrammel/js-code-executor-tool ai zod
+bun add @lgrammel/js-code-executor-tool ai
 ```
 
 ## Usage
@@ -32,7 +30,7 @@ const agent = new ToolLoopAgent({
 });
 ```
 
-The model supplies only the JavaScript source code. Code runs as an async function body inside a `vm` context, so it can use `await`, return a value, use the captured `console`, and read copied values from the `context` object.
+The model supplies only JavaScript source code. Code runs as an async function body, so it can use `await`, return a value, print with the captured `console`, and read copied values from `context`.
 
 ## Options
 

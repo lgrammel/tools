@@ -1,12 +1,20 @@
 # JavaScript Code Executor Tool Example
 
-Terminal UI example that uses `@lgrammel/js-code-executor-tool` with an OpenAI model.
+Interactive terminal UI for testing `@lgrammel/js-code-executor-tool` with an OpenAI model.
 
 ## Setup
 
 ```bash
+bun install
 cp examples/js-code-executor-tool/.env.example examples/js-code-executor-tool/.env
+```
+
+Set `OPENAI_API_KEY` in `examples/js-code-executor-tool/.env`.
+
+## Run
+
+```bash
 bun run --cwd examples/js-code-executor-tool start
 ```
 
-The example expects `OPENAI_API_KEY` in `examples/js-code-executor-tool/.env`.
+Ask for a calculation or small data transformation. The app renders an interactive terminal UI through `@lgrammel/agent-tui` and lets the agent run trusted JavaScript snippets.

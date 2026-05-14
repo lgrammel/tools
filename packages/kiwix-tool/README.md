@@ -1,16 +1,14 @@
 # @lgrammel/kiwix-tool
 
-AI SDK 7 tool package for searching and reading local [Kiwix](https://kiwix.org/) `.zim` archives from Node.js.
+AI SDK 7 tools for searching and reading local [Kiwix](https://kiwix.org/) `.zim` archives from Node.js. Use them when an agent should answer from an offline knowledge base such as Wikipedia, Stack Exchange, or project docs.
 
-Use it when a local agent should answer from an offline knowledge base such as Wikipedia, Stack Exchange, project docs, or another ZIM archive.
-
-## Installation
+## Install
 
 ```bash
-bun add @lgrammel/kiwix-tool
+bun add @lgrammel/kiwix-tool ai
 ```
 
-This package uses `@openzim/libzim` under the hood and must run in a Node.js-compatible environment.
+This package uses `@openzim/libzim` and must run in a Node.js-compatible environment.
 
 ## Usage
 
@@ -59,50 +57,13 @@ console.log(result.text);
 - `kiwixSearch`: full-text search over the archive. It fetches a configurable number of raw libzim results, reranks them to prefer exact and prefix title/path matches, then returns the configured number of results. Input is `{ query }`. Output is `results` with `title`, `path`, and optional `snippet`.
 - `kiwixReadPage`: read a page by exact path returned from search. Input is `{ path }`. Output is `title`, `path`, `content`, and `truncated`.
 
-The model cannot choose result, candidate, or read limits. Search result count, internal search candidate count, and page byte limits are configured only on the tool that uses them through each tool's `toolsContext` entry, validated by that tool's `contextSchema`, so tool outputs stay predictable for agents. HTML pages are converted to UTF-8 text before returning them to the model.
+Configuration lives in `toolsContext` and is validated by each tool's `contextSchema`, so the model cannot choose archive paths or result/read limits. HTML pages are converted to UTF-8 text before returning them to the model.
 
-## API
-
-Use the exported tools directly and pass tool-specific configuration through `toolsContext`:
-
-```ts
-import { kiwixReadPage, kiwixSearch } from "@lgrammel/kiwix-tool";
-
-const kiwixArchiveContext = {
-  zimPath: "~/opt/zim/wikipedia.zim"
-};
-
-const tools = {
-  wikipediaSearch: kiwixSearch,
-  wikipediaRead: kiwixReadPage
-};
-
-const toolsContext = {
-  wikipediaSearch: {
-    ...kiwixArchiveContext,
-    searchResultLimit: 5,
-    searchCandidateLimit: 100
-  },
-  wikipediaRead: {
-    ...kiwixArchiveContext,
-    readMaxBytes: 80 * 1024
-  }
-};
-```
-
-Each tool keeps its archive connection private and refreshes it if the archive context changes.
-
-## Shared Archive Context
+## Context
 
 - `zimPath`: path to the `.zim` file. `~/` is expanded to the current user's home directory.
 - `preloadXapianDb`: preload the full-text index when opening the archive. Defaults to `true`.
 - `preloadDirentRanges`: number of directory entry ranges to preload when opening the archive.
-
-## Search Context
-
 - `searchResultLimit`: fixed number of search results returned to the agent. Defaults to `5` and is capped at `10`.
 - `searchCandidateLimit`: number of raw libzim results fetched before title-aware reranking. Defaults to `100` and is capped at `500`. The effective candidate limit is never lower than `searchResultLimit`.
-
-## Read Context
-
 - `readMaxBytes`: maximum page bytes read before conversion to text. Defaults to `81920` and is capped at `524288`.

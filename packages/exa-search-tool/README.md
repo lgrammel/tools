@@ -1,13 +1,11 @@
 # @lgrammel/exa-search-tool
 
-AI SDK 7 tool package for searching the web and fetching page content through [Exa](https://exa.ai/).
+AI SDK 7 tools for searching the web and fetching page content through [Exa](https://exa.ai/). The package calls Exa with `fetch` directly and requires an Exa API key.
 
-Use it when an agent needs live web search with predictable tool inputs. The package calls Exa with `fetch` directly and does not use the Exa SDK.
-
-## Installation
+## Install
 
 ```bash
-bun add @lgrammel/exa-search-tool
+bun add @lgrammel/exa-search-tool ai
 ```
 
 ## Usage
@@ -55,55 +53,18 @@ console.log(result.text);
 - `webSearch`: searches the web with Exa. Input is `{ query }`. Output is `results` with `title`, `url`, optional `id`, `publishedDate`, `author`, `highlights`, `image`, and `favicon`.
 - `webFetch`: fetches clean page text for a URL. Input is `{ url }`. Output is `title`, `url`, optional metadata, `content`, and `truncated`.
 
-The model cannot choose API keys, search type, result count, domains, freshness, or content size. These are configured through each tool's `toolsContext` entry, validated by that tool's `contextSchema`, so tool outputs stay predictable for agents.
+Configuration lives in `toolsContext` and is validated by each tool's `contextSchema`, so the model cannot choose API keys, result counts, domains, freshness, or content size.
 
-## API
-
-Use the exported tools directly and pass tool-specific configuration through `toolsContext`:
-
-```ts
-import { webFetch, webSearch } from "@lgrammel/exa-search-tool";
-
-const exaContext = {
-  apiKey: process.env.EXA_API_KEY!,
-};
-
-const tools = {
-  webSearch,
-  webFetch,
-};
-
-const toolsContext = {
-  webSearch: {
-    ...exaContext,
-    searchResultLimit: 5,
-    searchType: "auto",
-    highlightMaxCharacters: 1000,
-  },
-  webFetch: {
-    ...exaContext,
-    fetchMaxCharacters: 80 * 1024,
-    textVerbosity: "compact",
-  },
-};
-```
-
-## Shared Exa Context
+## Context
 
 - `apiKey`: Exa API key used as the `x-api-key` request header.
 - `baseUrl`: Exa API base URL. Defaults to `https://api.exa.ai`.
 - `maxAgeHours`: maximum accepted age of cached Exa content in hours. Use `0` to always live crawl and `-1` to always use cache.
-
-## Search Context
-
 - `searchResultLimit`: fixed number of search results returned to the agent. Defaults to `5` and is capped at `10`.
 - `searchType`: Exa search type. Defaults to `auto`.
 - `highlightMaxCharacters`: maximum highlight characters per result. Defaults to `1000` and is capped at `4000`.
 - `includeDomains`: domains to restrict search results to.
 - `excludeDomains`: domains to exclude from search results.
-
-## Fetch Context
-
 - `fetchMaxCharacters`: maximum page text characters returned. Defaults to `81920` and is capped at `524288`.
 - `textVerbosity`: Exa text verbosity. Defaults to `compact`.
 - `includeHtmlTags`: include HTML tags in returned page text. Defaults to `false`.
