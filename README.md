@@ -4,11 +4,13 @@ Tools for building local agents with the [AI SDK](https://ai-sdk.dev/). The pack
 
 ## Tools
 
+- [`@lgrammel/exa-search-tool`](./packages/exa-search-tool): AI SDK tools for Exa web search and page content retrieval.
 - [`@lgrammel/kiwix-tool`](./packages/kiwix-tool): AI SDK tools for searching and reading local Kiwix/ZIM archives from Node.js.
 - [`@lgrammel/js-code-executor-tool`](./packages/js-code-executor-tool): AI SDK tool for executing JavaScript code in an in-process Node.js `vm` context.
 
 ## Examples
 
+- [`examples/exa-search-tool`](./examples/exa-search-tool): terminal UI example that uses `@lgrammel/exa-search-tool` for web search and page fetching.
 - [`examples/kiwix-tool`](./examples/kiwix-tool): terminal UI example that uses `@lgrammel/kiwix-tool` with a local Wikipedia ZIM archive.
 - [`examples/js-code-executor-tool`](./examples/js-code-executor-tool): terminal UI example that uses `@lgrammel/js-code-executor-tool` for calculations and small JavaScript snippets.
 

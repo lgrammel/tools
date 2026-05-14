@@ -7,5 +7,9 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@lgrammel/js-code-executor-tool-example", "@lgrammel/kiwix-tool-example"]
+  "ignore": [
+    "@lgrammel/exa-search-tool-example",
+    "@lgrammel/js-code-executor-tool-example",
+    "@lgrammel/kiwix-tool-example"
+  ]
 }

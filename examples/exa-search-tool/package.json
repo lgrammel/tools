@@ -1,0 +1,17 @@
+{
+  "name": "@lgrammel/exa-search-tool-example",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "bun run src/index.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@ai-sdk/openai": "4.0.0-canary.55",
+    "@lgrammel/agent-tui": "^0.2.0",
+    "@lgrammel/exa-search-tool": "workspace:*",
+    "ai": "7.0.0-canary.133",
+    "dotenv": "^17.4.2"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "@lgrammel/exa-search-tool": ["../../packages/exa-search-tool/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}
