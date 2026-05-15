@@ -11,15 +11,6 @@ const agent = new ToolLoopAgent({
   tools: {
     weather,
   },
-  toolsContext: {
-    weather: {
-      units: "metric",
-      language: "en",
-      forecastDays: 7,
-      hourlyForecastHours: 24,
-      timezone: "auto",
-    },
-  },
 });
 
 await runAgentTUI({

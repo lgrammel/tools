@@ -38,35 +38,38 @@ const openMeteoContextSchema = z.object({
     .describe("Optional User-Agent header for Open-Meteo requests."),
 });
 
-const weatherContextSchema = openMeteoContextSchema.extend({
-  language: z.string().min(1).optional().describe("Geocoding result language. Defaults to en."),
-  forecastDays: z
-    .number()
-    .int()
-    .positive()
-    .max(MAX_FORECAST_DAYS)
-    .optional()
-    .describe("Number of forecast days to request. Defaults to 7 and is capped at 16."),
-  hourlyForecastHours: z
-    .number()
-    .int()
-    .nonnegative()
-    .max(HARD_HOURLY_FORECAST_HOURS)
-    .optional()
-    .describe(
-      "Number of hourly forecast entries returned from the start of the forecast. Defaults to 24 and is capped at 384. Use 0 to omit hourly output.",
-    ),
-  timezone: z
-    .string()
-    .min(1)
-    .optional()
-    .describe("Timezone used by Open-Meteo for forecast timestamps. Defaults to auto."),
-  units: unitSystemSchema
-    .default("metric")
-    .describe(
-      "Unit system. Metric uses celsius, millimeters, and km/h; imperial uses fahrenheit, inches, and mph.",
-    ),
-});
+const weatherContextSchema = openMeteoContextSchema
+  .extend({
+    language: z.string().min(1).optional().describe("Geocoding result language. Defaults to en."),
+    forecastDays: z
+      .number()
+      .int()
+      .positive()
+      .max(MAX_FORECAST_DAYS)
+      .optional()
+      .describe("Number of forecast days to request. Defaults to 7 and is capped at 16."),
+    hourlyForecastHours: z
+      .number()
+      .int()
+      .nonnegative()
+      .max(HARD_HOURLY_FORECAST_HOURS)
+      .optional()
+      .describe(
+        "Number of hourly forecast entries returned from the start of the forecast. Defaults to 24 and is capped at 384. Use 0 to omit hourly output.",
+      ),
+    timezone: z
+      .string()
+      .min(1)
+      .optional()
+      .describe("Timezone used by Open-Meteo for forecast timestamps. Defaults to auto."),
+    units: unitSystemSchema
+      .optional()
+      .describe(
+        "Unit system. Metric uses celsius, millimeters, and km/h; imperial uses fahrenheit, inches, and mph.",
+      ),
+  })
+  .default({})
+  .optional();
 
 const openMeteoLocationResultSchema = z
   .object({
@@ -289,7 +292,8 @@ class WeatherTool {
     { query }: ParsedWeatherInput,
     { context }: ToolExecutionOptions<WeatherContext>,
   ): Promise<WeatherOutput> => {
-    const location = await resolveWeatherLocation(query, context);
+    const weatherContext = context ?? {};
+    const location = await resolveWeatherLocation(query, weatherContext);
 
     if (!location) {
       throw new Error(`Open-Meteo could not resolve a weather location for "${query}".`);
@@ -297,7 +301,7 @@ class WeatherTool {
 
     return {
       location,
-      forecast: await fetchWeatherForecast(location.latitude, location.longitude, context),
+      forecast: await fetchWeatherForecast(location.latitude, location.longitude, weatherContext),
     };
   };
 }
@@ -306,7 +310,7 @@ export const weather: Tool<ParsedWeatherInput, WeatherOutput, WeatherContext> = 
 
 async function resolveWeatherLocation(
   query: string,
-  context: WeatherContext,
+  context: WeatherContext = {},
 ): Promise<WeatherLocation | undefined> {
   const response = openMeteoGeocodingResponseSchema.parse(
     await getOpenMeteo(
@@ -328,7 +332,7 @@ async function resolveWeatherLocation(
 async function fetchWeatherForecast(
   latitude: number,
   longitude: number,
-  context: WeatherContext,
+  context: WeatherContext = {},
 ): Promise<WeatherForecastOutput> {
   const forecastDays = clampPositiveInteger(
     context.forecastDays ?? DEFAULT_FORECAST_DAYS,
@@ -407,7 +411,7 @@ async function fetchWeatherForecast(
   return normalizeForecast(response, hourlyForecastHours);
 }
 
-function getOpenMeteoUnits(units: WeatherContext["units"]): {
+function getOpenMeteoUnits(units: "metric" | "imperial" | undefined): {
   temperatureUnit: "celsius" | "fahrenheit";
   windSpeedUnit: "kmh" | "mph";
   precipitationUnit: "mm" | "inch";

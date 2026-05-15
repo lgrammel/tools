@@ -24,6 +24,9 @@
     "oxfmt": "^0.47.0",
     "typescript": "^6.0.3"
   },
+  "overrides": {
+    "ai": "^7.0.0-canary.139"
+  },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc}": "oxfmt --write"
   },

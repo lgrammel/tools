@@ -22,11 +22,6 @@ const agent = new ToolLoopAgent({
   tools: {
     weather,
   },
-  toolsContext: {
-    weather: {
-      units: "metric",
-    },
-  },
 });
 
 const result = await agent.generate({
@@ -40,7 +35,7 @@ console.log(result.text);
 
 - `weather`: resolves a place name through Open-Meteo geocoding, then fetches current weather, daily forecasts, and near-term hourly forecasts for the best matching location. Input is `{ query }`. Output includes the resolved `location` and `forecast`.
 
-Configuration lives in `toolsContext` and is validated by the tool's `contextSchema`, so the model cannot choose forecast horizon, units, timezone, API hosts, or returned hourly output size.
+Optional configuration lives in `toolsContext` and is validated by the tool's `contextSchema`, so the model cannot choose forecast horizon, units, timezone, API hosts, or returned hourly output size.
 
 ## Context
 
@@ -51,4 +46,4 @@ Configuration lives in `toolsContext` and is validated by the tool's `contextSch
 - `forecastDays`: number of forecast days to request. Defaults to `7` and is capped at `16`.
 - `hourlyForecastHours`: number of hourly forecast entries returned from the start of the forecast. Defaults to `24` and is capped at `384`. Use `0` to omit hourly output.
 - `timezone`: timezone used by Open-Meteo for forecast timestamps. Defaults to `auto`.
-- `units`: unit system. `metric` uses celsius, millimeters, and km/h; `imperial` uses fahrenheit, inches, and mph.
+- `units`: unit system. Defaults to `metric`. `metric` uses celsius, millimeters, and km/h; `imperial` uses fahrenheit, inches, and mph.

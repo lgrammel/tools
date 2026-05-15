@@ -31,9 +31,9 @@
   },
   "devDependencies": {
     "@types/html-to-text": "^9.0.4",
-    "ai": "^7.0.0-canary.133"
+    "ai": "^7.0.0-canary.139"
   },
   "peerDependencies": {
-    "ai": "^7.0.0-canary.133"
+    "ai": "^7.0.0-canary.139"
   }
 }
