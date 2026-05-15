@@ -2,7 +2,7 @@ import "dotenv/config";
 import { openai } from "@ai-sdk/openai";
 import { runAgentTUI } from "@lgrammel/agent-tui";
 import { kiwixReadPage, kiwixSearch } from "@lgrammel/kiwix-tool";
-import { ToolLoopAgent } from "ai";
+import { ToolLoopAgent, type Agent } from "ai";
 
 const wikipediaZimPath = process.env.WIKIPEDIA_ZIM_PATH;
 
@@ -26,5 +26,5 @@ const agent = new ToolLoopAgent({
 
 await runAgentTUI({
   name: "Kiwix Tool",
-  agent,
+  agent: agent as Agent<any, any, any, any>,
 });

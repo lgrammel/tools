@@ -1,6 +1,6 @@
 {
   "name": "@lgrammel/js-code-executor-tool",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AI SDK 7 tool for executing JavaScript code in an in-process Node.js vm context.",
   "license": "MIT",
   "files": [

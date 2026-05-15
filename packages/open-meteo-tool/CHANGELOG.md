@@ -1,5 +1,12 @@
 # @lgrammel/open-meteo-tool
 
+## 0.3.1
+
+### Patch Changes
+
+- d7473f1: Update AI SDK peer dependencies to `^7.0.0-canary.139`.
+- d7473f1: Make the weather tool context optional and default omitted units to metric.
+
 ## 0.3.0
 
 ### Minor Changes

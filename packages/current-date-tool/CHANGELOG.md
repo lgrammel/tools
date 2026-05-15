@@ -1,5 +1,11 @@
 # @lgrammel/current-date-tool
 
+## 0.3.1
+
+### Patch Changes
+
+- d7473f1: Update AI SDK peer dependencies to `^7.0.0-canary.139`.
+
 ## 0.3.0
 
 ### Minor Changes
