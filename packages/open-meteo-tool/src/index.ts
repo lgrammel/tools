@@ -9,7 +9,9 @@ const DEFAULT_HOURLY_FORECAST_HOURS = 24;
 const HARD_HOURLY_FORECAST_HOURS = 16 * 24;
 const MAX_ERROR_BODY_LENGTH = 1_000;
 
-const unitSystemSchema = z.enum(["metric", "imperial"]);
+const temperatureUnitSchema = z.enum(["celsius", "fahrenheit"]);
+const windSpeedUnitSchema = z.enum(["kmh", "ms", "mph", "kn"]);
+const precipitationUnitSchema = z.enum(["mm", "inch"]);
 
 const weatherInputSchema = z.object({
   query: z
@@ -62,11 +64,15 @@ const weatherContextSchema = openMeteoContextSchema
       .min(1)
       .optional()
       .describe("Timezone used by Open-Meteo for forecast timestamps. Defaults to auto."),
-    units: unitSystemSchema
+    temperatureUnit: temperatureUnitSchema
       .optional()
-      .describe(
-        "Unit system. Metric uses celsius, millimeters, and km/h; imperial uses fahrenheit, inches, and mph.",
-      ),
+      .describe("Temperature unit used by Open-Meteo. Defaults to celsius."),
+    windSpeedUnit: windSpeedUnitSchema
+      .optional()
+      .describe("Wind speed unit used by Open-Meteo. Defaults to kmh."),
+    precipitationUnit: precipitationUnitSchema
+      .optional()
+      .describe("Precipitation unit used by Open-Meteo. Defaults to mm."),
   })
   .default({})
   .optional();
@@ -342,7 +348,6 @@ async function fetchWeatherForecast(
     context.hourlyForecastHours ?? DEFAULT_HOURLY_FORECAST_HOURS,
     HARD_HOURLY_FORECAST_HOURS,
   );
-  const units = getOpenMeteoUnits(context.units);
   const response = openMeteoForecastResponseSchema.parse(
     await getOpenMeteo(
       "/v1/forecast",
@@ -352,9 +357,9 @@ async function fetchWeatherForecast(
         longitude: String(longitude),
         timezone: context.timezone ?? "auto",
         forecast_days: String(forecastDays),
-        temperature_unit: units.temperatureUnit,
-        wind_speed_unit: units.windSpeedUnit,
-        precipitation_unit: units.precipitationUnit,
+        temperature_unit: context.temperatureUnit,
+        wind_speed_unit: context.windSpeedUnit,
+        precipitation_unit: context.precipitationUnit,
         current: [
           "temperature_2m",
           "relative_humidity_2m",
@@ -409,26 +414,6 @@ async function fetchWeatherForecast(
   );
 
   return normalizeForecast(response, hourlyForecastHours);
-}
-
-function getOpenMeteoUnits(units: "metric" | "imperial" | undefined): {
-  temperatureUnit: "celsius" | "fahrenheit";
-  windSpeedUnit: "kmh" | "mph";
-  precipitationUnit: "mm" | "inch";
-} {
-  if (units === "imperial") {
-    return {
-      temperatureUnit: "fahrenheit",
-      windSpeedUnit: "mph",
-      precipitationUnit: "inch",
-    };
-  }
-
-  return {
-    temperatureUnit: "celsius",
-    windSpeedUnit: "kmh",
-    precipitationUnit: "mm",
-  };
 }
 
 async function getOpenMeteo(

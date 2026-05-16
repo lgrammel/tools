@@ -35,7 +35,7 @@ console.log(result.text);
 
 - `weather`: resolves a place name through Open-Meteo geocoding, then fetches current weather, daily forecasts, and near-term hourly forecasts for the best matching location. Input is `{ query }`. Output includes the resolved `location` and `forecast`.
 
-Optional configuration lives in `toolsContext` and is validated by the tool's `contextSchema`, so the model cannot choose forecast horizon, units, timezone, API hosts, or returned hourly output size.
+Optional configuration lives in `toolsContext` and is validated by the tool's `contextSchema`, so the model cannot choose forecast horizon, unit preferences, timezone, API hosts, or returned hourly output size.
 
 ## Context
 
@@ -46,4 +46,6 @@ Optional configuration lives in `toolsContext` and is validated by the tool's `c
 - `forecastDays`: number of forecast days to request. Defaults to `7` and is capped at `16`.
 - `hourlyForecastHours`: number of hourly forecast entries returned from the start of the forecast. Defaults to `24` and is capped at `384`. Use `0` to omit hourly output.
 - `timezone`: timezone used by Open-Meteo for forecast timestamps. Defaults to `auto`.
-- `units`: unit system. Defaults to `metric`. `metric` uses celsius, millimeters, and km/h; `imperial` uses fahrenheit, inches, and mph.
+- `temperatureUnit`: temperature unit used by Open-Meteo. Defaults to `celsius`. Supported values are `celsius` and `fahrenheit`.
+- `windSpeedUnit`: wind speed unit used by Open-Meteo. Defaults to `kmh`. Supported values are `kmh`, `ms`, `mph`, and `kn`.
+- `precipitationUnit`: precipitation unit used by Open-Meteo. Defaults to `mm`. Supported values are `mm` and `inch`.
