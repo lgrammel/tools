@@ -1,5 +1,11 @@
 # @lgrammel/open-meteo-tool
 
+## 0.4.0
+
+### Minor Changes
+
+- d179e1e: Remove the bundled `units` weather context setting and expose Open-Meteo's `temperatureUnit`, `windSpeedUnit`, and `precipitationUnit` settings individually.
+
 ## 0.3.1
 
 ### Patch Changes
