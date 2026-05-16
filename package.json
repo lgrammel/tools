@@ -13,6 +13,7 @@
     "format:check": "oxfmt --check \"**/*.{js,jsx,ts,tsx,json,jsonc}\"",
     "prepare": "husky",
     "release": "bun run build && changeset publish",
+    "release:full": "bun install && bun run typecheck && bun run build && bun run version && git diff && printf '\\nReview the diff above, then press Enter to commit and publish...' && read -r _ && git add . && git commit -m \"Version packages\" && bun run release && git push --follow-tags",
     "version": "changeset version",
     "typecheck": "bun run --filter '*' typecheck"
   },
