@@ -17,4 +17,4 @@ Set `OPENAI_API_KEY` and `EXA_API_KEY` in `examples/exa-search-tool/.env`.
 pnpm --dir examples/exa-search-tool start
 ```
 
-Ask a current-events or web research question. The app renders an interactive terminal UI through `@lgrammel/agent-tui`; the agent searches Exa, fetches relevant pages, and answers with URL citations.
+Ask a current-events or web research question. The app renders an interactive terminal UI through `@ai-sdk/tui`; the agent searches Exa, fetches relevant pages, and answers with URL citations.

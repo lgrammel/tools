@@ -17,4 +17,4 @@ Set `OPENAI_API_KEY` and `WIKIPEDIA_ZIM_PATH` in `examples/kiwix-tool/.env`. `WI
 pnpm --dir examples/kiwix-tool start
 ```
 
-Ask a question about the archive. The app renders an interactive terminal UI through `@lgrammel/agent-tui`; the agent searches and reads local pages before answering.
+Ask a question about the archive. The app renders an interactive terminal UI through `@ai-sdk/tui`; the agent searches and reads local pages before answering.

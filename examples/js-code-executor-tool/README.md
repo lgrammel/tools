@@ -17,4 +17,4 @@ Set `OPENAI_API_KEY` in `examples/js-code-executor-tool/.env`.
 pnpm --dir examples/js-code-executor-tool start
 ```
 
-Ask for a calculation or small data transformation. The app renders an interactive terminal UI through `@lgrammel/agent-tui` and lets the agent run trusted JavaScript snippets.
+Ask for a calculation or small data transformation. The app renders an interactive terminal UI through `@ai-sdk/tui` and lets the agent run trusted JavaScript snippets.

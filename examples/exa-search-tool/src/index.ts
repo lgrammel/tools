@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { openai } from "@ai-sdk/openai";
-import { runAgentTUI } from "@lgrammel/agent-tui";
+import { runAgentTUI } from "@ai-sdk/tui";
 import { webFetch, webSearch } from "@lgrammel/exa-search-tool";
 import { ToolLoopAgent, type Agent } from "ai";
 
@@ -32,7 +32,7 @@ const agent = new ToolLoopAgent({
 });
 
 await runAgentTUI({
-  name: "Exa Search Tool",
+  title: "Exa Search Tool",
   agent: agent as Agent<any, any, any, any>,
   tools: "collapsed",
   reasoning: "hidden",

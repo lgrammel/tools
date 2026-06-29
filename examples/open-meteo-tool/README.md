@@ -17,4 +17,4 @@ Set `OPENAI_API_KEY` in `examples/open-meteo-tool/.env`.
 pnpm --dir examples/open-meteo-tool start
 ```
 
-Ask about current weather or forecasts. The app renders an interactive terminal UI through `@lgrammel/agent-tui` and uses metric units by default.
+Ask about current weather or forecasts. The app renders an interactive terminal UI through `@ai-sdk/tui` and uses metric units by default.

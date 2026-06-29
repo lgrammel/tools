@@ -35,9 +35,9 @@ importers:
       '@ai-sdk/openai':
         specifier: 4.0.2
         version: 4.0.2(zod@4.4.3)
-      '@lgrammel/agent-tui':
-        specifier: ^0.2.0
-        version: 0.2.0(typescript@6.0.3)(zod@4.4.3)
+      '@ai-sdk/tui':
+        specifier: ^1.0.4
+        version: 1.0.4(zod@4.4.3)
       '@lgrammel/current-date-tool':
         specifier: workspace:*
         version: link:../../packages/current-date-tool
@@ -53,9 +53,9 @@ importers:
       '@ai-sdk/openai':
         specifier: 4.0.2
         version: 4.0.2(zod@4.4.3)
-      '@lgrammel/agent-tui':
-        specifier: ^0.2.0
-        version: 0.2.0(typescript@6.0.3)(zod@4.4.3)
+      '@ai-sdk/tui':
+        specifier: ^1.0.4
+        version: 1.0.4(zod@4.4.3)
       '@lgrammel/exa-search-tool':
         specifier: workspace:*
         version: link:../../packages/exa-search-tool
@@ -71,9 +71,9 @@ importers:
       '@ai-sdk/openai':
         specifier: 4.0.2
         version: 4.0.2(zod@4.4.3)
-      '@lgrammel/agent-tui':
-        specifier: ^0.2.0
-        version: 0.2.0(typescript@6.0.3)(zod@4.4.3)
+      '@ai-sdk/tui':
+        specifier: ^1.0.4
+        version: 1.0.4(zod@4.4.3)
       '@lgrammel/js-code-executor-tool':
         specifier: workspace:*
         version: link:../../packages/js-code-executor-tool
@@ -89,9 +89,9 @@ importers:
       '@ai-sdk/openai':
         specifier: 4.0.2
         version: 4.0.2(zod@4.4.3)
-      '@lgrammel/agent-tui':
-        specifier: ^0.2.0
-        version: 0.2.0(typescript@6.0.3)(zod@4.4.3)
+      '@ai-sdk/tui':
+        specifier: ^1.0.4
+        version: 1.0.4(zod@4.4.3)
       '@lgrammel/kiwix-tool':
         specifier: workspace:*
         version: link:../../packages/kiwix-tool
@@ -107,9 +107,9 @@ importers:
       '@ai-sdk/openai':
         specifier: 4.0.2
         version: 4.0.2(zod@4.4.3)
-      '@lgrammel/agent-tui':
-        specifier: ^0.2.0
-        version: 0.2.0(typescript@6.0.3)(zod@4.4.3)
+      '@ai-sdk/tui':
+        specifier: ^1.0.4
+        version: 1.0.4(zod@4.4.3)
       '@lgrammel/open-meteo-tool':
         specifier: workspace:*
         version: link:../../packages/open-meteo-tool
@@ -207,6 +207,10 @@ packages:
 
   '@ai-sdk/provider@4.0.0':
     resolution: {integrity: sha512-fr9Gs89prDWiuox/T+kCA+i2cJkHpxU5S+tr4megjTzRC27ZsvFhwjU/+XrqqMbvBUlfmXxTOYWy8ng45dsjIg==}
+    engines: {node: '>=22'}
+
+  '@ai-sdk/tui@1.0.4':
+    resolution: {integrity: sha512-kPSpWgmEq6ygbvmpjUb9bNCC0dkpyXSmME2J2ziHWeaXQ1MiJT1BAknQm6QribRUeyh260QfeATmt3XgACDHsQ==}
     engines: {node: '>=22'}
 
   '@babel/code-frame@7.29.7':
@@ -495,11 +499,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.9':
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
-
-  '@lgrammel/agent-tui@0.2.0':
-    resolution: {integrity: sha512-fzS5pn4wIziOjbGyKuMwuBU2mM+fq5yjs5WavyMFhDWbKd6ULniuIpaMOGgdxC8VlJI69b+rkQ9b8flEAqfSSg==}
-    peerDependencies:
-      typescript: ^5
 
   '@manypkg/find-root@1.1.0':
     resolution: {integrity: sha512-mki5uBvhHzO8kYYix/WRy2WX8S3B5wdVSc9D6KcU5lQNglP2yt58/VfLuAK49glRXChosY8ap2oJ1qgma3GUVA==}
@@ -2151,6 +2150,12 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
+  '@ai-sdk/tui@1.0.4(zod@4.4.3)':
+    dependencies:
+      ai: 7.0.4(zod@4.4.3)
+    transitivePeerDependencies:
+      - zod
+
   '@babel/code-frame@7.29.7':
     dependencies:
       '@babel/helper-validator-identifier': 7.29.7
@@ -2457,13 +2462,6 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
-
-  '@lgrammel/agent-tui@0.2.0(typescript@6.0.3)(zod@4.4.3)':
-    dependencies:
-      ai: 7.0.4(zod@4.4.3)
-      typescript: 6.0.3
-    transitivePeerDependencies:
-      - zod
 
   '@manypkg/find-root@1.1.0':
     dependencies:

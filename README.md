@@ -34,4 +34,4 @@ cp examples/open-meteo-tool/.env.example examples/open-meteo-tool/.env
 pnpm --dir examples/open-meteo-tool start
 ```
 
-All examples use `@lgrammel/agent-tui` and require `OPENAI_API_KEY`. The Exa example also requires `EXA_API_KEY`, and the Kiwix example requires `WIKIPEDIA_ZIM_PATH` pointing to a local `.zim` file.
+All examples use `@ai-sdk/tui` and require `OPENAI_API_KEY`. The Exa example also requires `EXA_API_KEY`, and the Kiwix example requires `WIKIPEDIA_ZIM_PATH` pointing to a local `.zim` file.

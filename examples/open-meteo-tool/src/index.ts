@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { openai } from "@ai-sdk/openai";
-import { runAgentTUI } from "@lgrammel/agent-tui";
+import { runAgentTUI } from "@ai-sdk/tui";
 import { weather } from "@lgrammel/open-meteo-tool";
 import { ToolLoopAgent, type Agent } from "ai";
 
@@ -14,7 +14,7 @@ const agent = new ToolLoopAgent({
 });
 
 await runAgentTUI({
-  name: "Open-Meteo Tool",
+  title: "Open-Meteo Tool",
   agent: agent as Agent<any, any, any, any>,
   tools: "collapsed",
   reasoning: "hidden",

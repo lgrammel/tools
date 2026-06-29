@@ -17,4 +17,4 @@ Set `OPENAI_API_KEY` in `examples/current-date-tool/.env`.
 pnpm --dir examples/current-date-tool start
 ```
 
-The app uses the `currentDate` tool with the `Europe/Berlin` timezone and renders an interactive terminal UI through `@lgrammel/agent-tui`.
+The app uses the `currentDate` tool with the `Europe/Berlin` timezone and renders an interactive terminal UI through `@ai-sdk/tui`.

@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "4.0.2",
-    "@lgrammel/agent-tui": "^0.2.0",
+    "@ai-sdk/tui": "^1.0.4",
     "@lgrammel/kiwix-tool": "workspace:*",
     "ai": "^7.0.4",
     "dotenv": "^17.4.2"

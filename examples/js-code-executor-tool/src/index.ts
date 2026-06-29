@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { openai } from "@ai-sdk/openai";
-import { runAgentTUI } from "@lgrammel/agent-tui";
+import { runAgentTUI } from "@ai-sdk/tui";
 import { jsCodeExecutorTool } from "@lgrammel/js-code-executor-tool";
 import { ToolLoopAgent, type Agent } from "ai";
 
@@ -20,7 +20,7 @@ const agent = new ToolLoopAgent({
 });
 
 await runAgentTUI({
-  name: "JavaScript Code Executor Tool",
+  title: "JavaScript Code Executor Tool",
   agent: agent as Agent<any, any, any, any>,
   tools: "collapsed",
   reasoning: "hidden",

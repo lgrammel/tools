@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { openai } from "@ai-sdk/openai";
-import { runAgentTUI } from "@lgrammel/agent-tui";
+import { runAgentTUI } from "@ai-sdk/tui";
 import { kiwixReadPage, kiwixSearch } from "@lgrammel/kiwix-tool";
 import { ToolLoopAgent, type Agent } from "ai";
 
@@ -25,6 +25,6 @@ const agent = new ToolLoopAgent({
 });
 
 await runAgentTUI({
-  name: "Kiwix Tool",
+  title: "Kiwix Tool",
   agent: agent as Agent<any, any, any, any>,
 });

@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { openai } from "@ai-sdk/openai";
-import { runAgentTUI } from "@lgrammel/agent-tui";
+import { runAgentTUI } from "@ai-sdk/tui";
 import { currentDate } from "@lgrammel/current-date-tool";
 import { ToolLoopAgent, type Agent } from "ai";
 
@@ -19,7 +19,7 @@ const agent = new ToolLoopAgent({
 });
 
 await runAgentTUI({
-  name: "Current Date Tool",
+  title: "Current Date Tool",
   agent: agent as Agent<any, any, any, any>,
   tools: "collapsed",
   reasoning: "hidden",
