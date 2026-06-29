@@ -29,10 +29,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "ai": "^7.0.0-canary.139",
+    "ai": "^7.0.4",
     "vitest": "4.1.6"
   },
   "peerDependencies": {
-    "ai": "^7.0.0-canary.139"
+    "ai": "^7.0.4"
   }
 }
