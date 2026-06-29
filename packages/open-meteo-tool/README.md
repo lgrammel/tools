@@ -5,7 +5,7 @@ AI SDK 7 tool for resolving place names and fetching current weather reports and
 ## Install
 
 ```bash
-bun add @lgrammel/open-meteo-tool ai
+pnpm add @lgrammel/open-meteo-tool ai
 ```
 
 ## Usage

@@ -5,7 +5,7 @@ AI SDK 7 tools for searching and reading local [Kiwix](https://kiwix.org/) `.zim
 ## Install
 
 ```bash
-bun add @lgrammel/kiwix-tool ai
+pnpm add @lgrammel/kiwix-tool ai
 ```
 
 This package uses `@openzim/libzim` and must run in a Node.js-compatible environment.

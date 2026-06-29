@@ -5,7 +5,7 @@ Interactive terminal UI for testing `@lgrammel/exa-search-tool` with Exa web sea
 ## Setup
 
 ```bash
-bun install
+pnpm install
 cp examples/exa-search-tool/.env.example examples/exa-search-tool/.env
 ```
 
@@ -14,7 +14,7 @@ Set `OPENAI_API_KEY` and `EXA_API_KEY` in `examples/exa-search-tool/.env`.
 ## Run
 
 ```bash
-bun run --cwd examples/exa-search-tool start
+pnpm --dir examples/exa-search-tool start
 ```
 
 Ask a current-events or web research question. The app renders an interactive terminal UI through `@lgrammel/agent-tui`; the agent searches Exa, fetches relevant pages, and answers with URL citations.

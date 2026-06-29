@@ -20,18 +20,18 @@ AI SDK tool packages and runnable terminal examples for agents that need local r
 
 ## Development
 
-Install dependencies and build all workspaces with Bun:
+Install dependencies and build all workspaces with pnpm:
 
 ```bash
-bun install
-bun run build
+pnpm install
+pnpm build
 ```
 
 Run an example by copying its `.env.example` file and starting that workspace:
 
 ```bash
 cp examples/open-meteo-tool/.env.example examples/open-meteo-tool/.env
-bun run --cwd examples/open-meteo-tool start
+pnpm --dir examples/open-meteo-tool start
 ```
 
 All examples use `@lgrammel/agent-tui` and require `OPENAI_API_KEY`. The Exa example also requires `EXA_API_KEY`, and the Kiwix example requires `WIKIPEDIA_ZIM_PATH` pointing to a local `.zim` file.

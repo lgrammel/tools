@@ -1,21 +1,17 @@
 {
   "name": "kiwix-tool-monorepo",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "examples/*"
-  ],
   "type": "module",
   "scripts": {
-    "build": "bun run --filter '*' build",
+    "build": "pnpm -r --if-present build",
     "changeset": "changeset",
     "format": "oxfmt --write \"**/*.{js,jsx,ts,tsx,json,jsonc}\"",
     "format:check": "oxfmt --check \"**/*.{js,jsx,ts,tsx,json,jsonc}\"",
     "prepare": "husky",
-    "release": "bun run build && changeset publish",
-    "release:full": "bun install && bun run typecheck && bun run build && bun run version && git diff && printf '\\nReview the diff above, then press Enter to commit and publish...' && read -r _ && git add . && git commit -m \"Version packages\" && bun run release && git push --follow-tags",
+    "release": "pnpm run build && changeset publish",
+    "release:full": "pnpm install && pnpm run typecheck && pnpm run build && pnpm run version && git diff && printf '\\nReview the diff above, then press Enter to commit and publish...' && read -r _ && git add . && git commit -m \"Version packages\" && pnpm run release && git push --follow-tags",
     "version": "changeset version",
-    "typecheck": "bun run --filter '*' typecheck"
+    "typecheck": "pnpm -r --if-present typecheck"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",
@@ -23,6 +19,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "oxfmt": "^0.47.0",
+    "tsx": "^4.20.6",
     "typescript": "^6.0.3"
   },
   "overrides": {
@@ -31,7 +28,5 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,jsonc}": "oxfmt --write"
   },
-  "trustedDependencies": [
-    "@openzim/libzim"
-  ]
+  "packageManager": "pnpm@11.9.0"
 }

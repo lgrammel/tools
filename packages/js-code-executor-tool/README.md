@@ -5,7 +5,7 @@ AI SDK 7 tool for executing JavaScript code in an in-process Node.js `vm` contex
 ## Install
 
 ```bash
-bun add @lgrammel/js-code-executor-tool ai
+pnpm add @lgrammel/js-code-executor-tool ai
 ```
 
 ## Usage

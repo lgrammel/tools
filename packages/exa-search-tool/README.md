@@ -5,7 +5,7 @@ AI SDK 7 tools for searching the web and fetching page content through [Exa](htt
 ## Install
 
 ```bash
-bun add @lgrammel/exa-search-tool ai
+pnpm add @lgrammel/exa-search-tool ai
 ```
 
 ## Usage

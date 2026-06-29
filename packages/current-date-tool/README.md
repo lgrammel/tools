@@ -5,7 +5,7 @@ AI SDK 7 tool for returning the current date and time in a configured IANA timez
 ## Install
 
 ```bash
-bun add @lgrammel/current-date-tool ai
+pnpm add @lgrammel/current-date-tool ai
 ```
 
 ## Usage
