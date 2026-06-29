@@ -1,6 +1,6 @@
 {
   "name": "@lgrammel/open-meteo-tool",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "AI SDK 7 tools for Open-Meteo location lookup, weather reports, and forecasts.",
   "license": "MIT",
   "files": [

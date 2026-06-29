@@ -1,5 +1,11 @@
 # @lgrammel/open-meteo-tool
 
+## 0.4.1
+
+### Patch Changes
+
+- 4e624a3: Update AI SDK peer dependencies to `^7.0.4`.
+
 ## 0.4.0
 
 ### Minor Changes
