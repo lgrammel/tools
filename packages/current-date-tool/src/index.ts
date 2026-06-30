@@ -21,6 +21,26 @@ export interface CurrentDateOutput {
   iso: string;
 
   /**
+   * The configured IANA timezone.
+   */
+  timezone: string;
+
+  /**
+   * Localized date in YYYY-MM-DD format.
+   */
+  date: string;
+
+  /**
+   * Localized time in HH:mm:ss format.
+   */
+  time: string;
+
+  /**
+   * UTC offset for the configured timezone at the current instant.
+   */
+  utcOffset: string;
+
+  /**
    * Timezone abbreviation for the current instant.
    */
   timezoneName: string;
@@ -29,6 +49,11 @@ export interface CurrentDateOutput {
    * Localized date and time in YYYY-MM-DDTHH:mm:ss format.
    */
   datetime: string;
+
+  /**
+   * Unix timestamp in milliseconds.
+   */
+  timestamp: number;
 }
 
 class CurrentDateTool {
@@ -58,8 +83,13 @@ function formatCurrentDate(now: Date, timezone: string): CurrentDateOutput {
 
   return {
     iso: now.toISOString(),
+    timezone,
+    date,
+    time,
+    utcOffset: getUtcOffset(now, parts),
     timezoneName,
     datetime: `${date}T${time}`,
+    timestamp: now.getTime(),
   };
 }
 
@@ -108,6 +138,36 @@ function getTimezoneName(date: Date, timezone: string): string {
   }
 
   return value;
+}
+
+function getUtcOffset(
+  date: Date,
+  parts: {
+    year: string;
+    month: string;
+    day: string;
+    hour: string;
+    minute: string;
+    second: string;
+  },
+): string {
+  const localizedTimestamp = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  const offsetMinutes = Math.round((localizedTimestamp - date.getTime()) / 60_000);
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absoluteOffsetMinutes = Math.abs(offsetMinutes);
+  const hours = Math.floor(absoluteOffsetMinutes / 60)
+    .toString()
+    .padStart(2, "0");
+  const minutes = (absoluteOffsetMinutes % 60).toString().padStart(2, "0");
+
+  return `${sign}${hours}:${minutes}`;
 }
 
 function getRequiredPart(

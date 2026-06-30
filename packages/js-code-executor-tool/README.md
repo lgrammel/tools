@@ -30,11 +30,11 @@ const agent = new ToolLoopAgent({
 });
 ```
 
-The model supplies only JavaScript source code. Code runs as an async function body, so it can use `await`, return a value, print with the captured `console`, and read copied values from `context`.
+The model supplies only JavaScript source code. Code runs as an async function body, so it can use `await`, return a value, print with the captured `console`, and read copied structured-cloneable data from `context`.
 
 ## Options
 
-- `context`: values exposed to executed code as the `context` object. Defaults to `{}`.
+- `context`: structured-cloneable data exposed to executed code as the `context` object. Defaults to `{}`. Functions, streams, class instances, and host objects should not be passed.
 - `timeoutMs`: maximum execution time. Defaults to `5000` and is capped at `60000`.
 - `maxOutputBytes`: maximum combined stdout and stderr retained. Defaults to `65536` and is capped at `1048576`. Console calls that exceed this limit throw.
 

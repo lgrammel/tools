@@ -2,5 +2,10 @@ packages:
   - "packages/*"
   - "examples/*"
 
+allowBuilds:
+  "@openzim/libzim": true
+  esbuild: true
+
 onlyBuiltDependencies:
   - "@openzim/libzim"
+  - "esbuild"

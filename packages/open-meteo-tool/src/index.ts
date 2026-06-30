@@ -296,10 +296,10 @@ class WeatherTool {
 
   execute = async (
     { query }: ParsedWeatherInput,
-    { context }: ToolExecutionOptions<WeatherContext>,
+    { abortSignal, context }: ToolExecutionOptions<WeatherContext>,
   ): Promise<WeatherOutput> => {
     const weatherContext = context ?? {};
-    const location = await resolveWeatherLocation(query, weatherContext);
+    const location = await resolveWeatherLocation(query, weatherContext, abortSignal);
 
     if (!location) {
       throw new Error(`Open-Meteo could not resolve a weather location for "${query}".`);
@@ -307,7 +307,12 @@ class WeatherTool {
 
     return {
       location,
-      forecast: await fetchWeatherForecast(location.latitude, location.longitude, weatherContext),
+      forecast: await fetchWeatherForecast(
+        location.latitude,
+        location.longitude,
+        weatherContext,
+        abortSignal,
+      ),
     };
   };
 }
@@ -317,6 +322,7 @@ export const weather: Tool<ParsedWeatherInput, WeatherOutput, WeatherContext> = 
 async function resolveWeatherLocation(
   query: string,
   context: WeatherContext = {},
+  abortSignal?: AbortSignal,
 ): Promise<WeatherLocation | undefined> {
   const response = openMeteoGeocodingResponseSchema.parse(
     await getOpenMeteo(
@@ -329,6 +335,7 @@ async function resolveWeatherLocation(
         format: "json",
       },
       context,
+      abortSignal,
     ),
   );
 
@@ -339,6 +346,7 @@ async function fetchWeatherForecast(
   latitude: number,
   longitude: number,
   context: WeatherContext = {},
+  abortSignal?: AbortSignal,
 ): Promise<WeatherForecastOutput> {
   const forecastDays = clampPositiveInteger(
     context.forecastDays ?? DEFAULT_FORECAST_DAYS,
@@ -410,6 +418,7 @@ async function fetchWeatherForecast(
         ].join(","),
       },
       context,
+      abortSignal,
     ),
   );
 
@@ -421,6 +430,7 @@ async function getOpenMeteo(
   baseUrl: string,
   params: Record<string, string | undefined>,
   context: OpenMeteoContext,
+  abortSignal: AbortSignal | undefined,
 ): Promise<unknown> {
   if (typeof globalThis.fetch !== "function") {
     throw new Error("The Open-Meteo tools require a runtime with global fetch support.");
@@ -439,6 +449,7 @@ async function getOpenMeteo(
       accept: "application/json",
       ...(context.userAgent ? { "user-agent": context.userAgent } : {}),
     },
+    signal: abortSignal,
   });
   const responseBody = await response.text();
 

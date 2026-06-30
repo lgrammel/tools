@@ -22,13 +22,16 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:type": "vitest --typecheck.only",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "ai": "^7.0.4"
+    "ai": "^7.0.4",
+    "vitest": "4.1.6"
   },
   "peerDependencies": {
     "ai": "^7.0.4"

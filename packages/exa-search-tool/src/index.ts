@@ -191,7 +191,7 @@ class WebSearchTool {
 
   execute = async (
     { query }: ParsedWebSearchInput,
-    { context }: ToolExecutionOptions<WebSearchContext>,
+    { abortSignal, context }: ToolExecutionOptions<WebSearchContext>,
   ): Promise<WebSearchOutput> => {
     const searchResultLimit = clampPositiveInteger(
       context.searchResultLimit ?? DEFAULT_SEARCH_RESULT_LIMIT,
@@ -202,7 +202,7 @@ class WebSearchTool {
       HARD_HIGHLIGHT_MAX_CHARACTERS,
     );
     const response = exaSearchResponseSchema.parse(
-      await postExa("/search", context, {
+      await postExa("/search", context, abortSignal, {
         query,
         type: context.searchType ?? "auto",
         numResults: searchResultLimit,
@@ -233,14 +233,14 @@ class WebFetchTool {
 
   execute = async (
     { url }: ParsedWebFetchInput,
-    { context }: ToolExecutionOptions<WebFetchContext>,
+    { abortSignal, context }: ToolExecutionOptions<WebFetchContext>,
   ): Promise<WebFetchOutput> => {
     const fetchMaxCharacters = clampPositiveInteger(
       context.fetchMaxCharacters ?? DEFAULT_FETCH_MAX_CHARACTERS,
       HARD_FETCH_MAX_CHARACTERS,
     );
     const response = exaContentsResponseSchema.parse(
-      await postExa("/contents", context, {
+      await postExa("/contents", context, abortSignal, {
         urls: [url],
         text: {
           maxCharacters: fetchMaxCharacters,
@@ -283,6 +283,7 @@ export const webFetch = new WebFetchTool() satisfies Tool<
 async function postExa(
   path: "/search" | "/contents",
   context: ExaContext,
+  abortSignal: AbortSignal | undefined,
   body: unknown,
 ): Promise<unknown> {
   if (typeof globalThis.fetch !== "function") {
@@ -296,6 +297,7 @@ async function postExa(
       "x-api-key": context.apiKey,
     },
     body: JSON.stringify(removeUndefinedDeep(body)),
+    signal: abortSignal,
   });
   const responseBody = await response.text();
 

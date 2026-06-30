@@ -19,12 +19,22 @@ export const jsCodeExecutorInputSchema = z.object({
 
 export type JsCodeExecutorInput = z.input<typeof jsCodeExecutorInputSchema>;
 export type ParsedJsCodeExecutorInput = z.output<typeof jsCodeExecutorInputSchema>;
+export type JsCodeExecutorContextValue =
+  | null
+  | undefined
+  | boolean
+  | number
+  | string
+  | bigint
+  | readonly JsCodeExecutorContextValue[]
+  | { readonly [key: string]: JsCodeExecutorContextValue };
+export type JsCodeExecutorContext = Readonly<Record<string, JsCodeExecutorContextValue>>;
 
 export interface CreateJsCodeExecutorToolOptions {
   /**
-   * Values exposed to executed code as the `context` object.
+   * Structured-cloneable data exposed to executed code as the `context` object.
    */
-  context?: Readonly<Record<string, unknown>>;
+  context?: JsCodeExecutorContext;
 
   /**
    * Maximum execution time. This is intentionally not model-controlled.
@@ -57,7 +67,7 @@ export interface JsCodeExecutionOutput {
 export type JsCodeExecutorTool = Tool<ParsedJsCodeExecutorInput, JsCodeExecutionOutput>;
 
 export class JsCodeExecutor {
-  readonly context: Readonly<Record<string, unknown>>;
+  readonly context: JsCodeExecutorContext;
   readonly timeoutMs: number;
   readonly maxOutputBytes: number;
 
@@ -93,7 +103,7 @@ export function jsCodeExecutorTool(
 }
 
 interface NormalizedExecutionOptions {
-  context: Readonly<Record<string, unknown>>;
+  context: JsCodeExecutorContext;
   timeoutMs: number;
   maxOutputBytes: number;
 }
@@ -168,7 +178,7 @@ __executionPromise;`,
 
 interface SandboxGlobal {
   console: Console;
-  context: Readonly<Record<string, unknown>>;
+  context: JsCodeExecutorContext;
   __executionError?: JsCodeExecutionError;
   __executionResult?: string;
   __executionSettled?: boolean;
@@ -176,10 +186,7 @@ interface SandboxGlobal {
   __formatExecutionResult: (value: unknown) => string | undefined;
 }
 
-function createSandbox(
-  output: OutputCapture,
-  context: Readonly<Record<string, unknown>>,
-): SandboxGlobal {
+function createSandbox(output: OutputCapture, context: JsCodeExecutorContext): SandboxGlobal {
   return {
     console: createCapturedConsole(output),
     context: deepFreeze(structuredClone(context)),

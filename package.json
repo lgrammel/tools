@@ -10,6 +10,7 @@
     "prepare": "husky",
     "release": "pnpm run build && changeset publish",
     "release:full": "pnpm install && pnpm run typecheck && pnpm run build && pnpm run version && git diff && printf '\\nReview the diff above, then press Enter to commit and publish...' && read -r _ && git add . && git commit -m \"Version packages\" && pnpm run release && git push --follow-tags",
+    "test": "pnpm -r --if-present test",
     "version": "changeset version",
     "typecheck": "pnpm -r --if-present typecheck"
   },

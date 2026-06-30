@@ -57,7 +57,7 @@ console.log(result.text);
 - `kiwixSearch`: full-text search over the archive. It fetches a configurable number of raw libzim results, reranks them to prefer exact and prefix title/path matches, then returns the configured number of results. Input is `{ query }`. Output is `results` with `title`, `path`, and optional `snippet`.
 - `kiwixReadPage`: read a page by exact path returned from search. Input is `{ path }`. Output is `title`, `path`, `content`, and `truncated`.
 
-Configuration lives in `toolsContext` and is validated by each tool's `contextSchema`, so the model cannot choose archive paths or result/read limits. HTML pages are converted to UTF-8 text before returning them to the model.
+Configuration lives in `toolsContext` and is validated by each tool's `contextSchema`, so the model cannot choose archive paths or result/read limits. HTML pages are converted to UTF-8 text before returning them to the model. Truncated pages include an explicit truncation marker in the returned content.
 
 ## Context
 

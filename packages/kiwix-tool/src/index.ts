@@ -217,12 +217,13 @@ class KiwixReadPageTool {
     const size = toSafeNumber(item.size);
     const readMaxBytes = clampReadMaxBytes(context.readMaxBytes ?? DEFAULT_READ_MAX_BYTES);
     const data = item.getData(0, Math.min(readMaxBytes, size)).data;
+    const truncated = data.byteLength < size;
 
     return {
       title: entry.title,
       path: entry.path,
-      content: formatPageContent(item, data),
-      truncated: data.byteLength < size,
+      content: formatPageContent(item, data, truncated, size),
+      truncated,
     };
   };
 
@@ -262,26 +263,36 @@ function getArchiveCacheKey(context: KiwixArchiveContext): string {
   });
 }
 
-function formatPageContent(item: Item, data: Buffer): string {
+function formatPageContent(
+  item: Item,
+  data: Buffer,
+  truncated: boolean,
+  totalBytes: number,
+): string {
   if (!isTextMimeType(item.mimetype)) {
     return `[${item.mimetype} content omitted: this Kiwix entry is not a text page.]`;
   }
 
-  const text = data.toString("utf8");
+  const text = trimTrailingIncompleteUtf8(data).toString("utf8");
+  let content: string;
 
   if (!isHtmlMimeType(item.mimetype)) {
-    return text;
+    content = text;
+  } else {
+    content = htmlToText(text, {
+      selectors: [
+        { selector: "a", options: { ignoreHref: true } },
+        { selector: "img", format: "skip" },
+        { selector: "script", format: "skip" },
+        { selector: "style", format: "skip" },
+      ],
+      wordwrap: false,
+    });
   }
 
-  return htmlToText(text, {
-    selectors: [
-      { selector: "a", options: { ignoreHref: true } },
-      { selector: "img", format: "skip" },
-      { selector: "script", format: "skip" },
-      { selector: "style", format: "skip" },
-    ],
-    wordwrap: false,
-  });
+  return truncated
+    ? `${content.trimEnd()}\n\n[Content truncated after ${data.byteLength} of ${totalBytes} bytes.]`
+    : content;
 }
 
 function cleanSnippet(snippet: string): string | undefined {
@@ -406,4 +417,52 @@ function clampReadMaxBytes(maxBytes: number): number {
 
 function toSafeNumber(value: number | bigint): number {
   return typeof value === "bigint" ? Number(value) : value;
+}
+
+function trimTrailingIncompleteUtf8(data: Buffer): Buffer {
+  if (data.length === 0) {
+    return data;
+  }
+
+  let sequenceStart = data.length - 1;
+
+  while (
+    sequenceStart > Math.max(data.length - 4, 0) &&
+    isUtf8ContinuationByte(data[sequenceStart])
+  ) {
+    sequenceStart--;
+  }
+
+  const leadByte = data[sequenceStart];
+  const sequenceLength = getUtf8SequenceLength(leadByte);
+
+  if (sequenceLength > data.length - sequenceStart) {
+    return data.subarray(0, sequenceStart);
+  }
+
+  return data;
+}
+
+function isUtf8ContinuationByte(byte: number | undefined): boolean {
+  return byte !== undefined && (byte & 0xc0) === 0x80;
+}
+
+function getUtf8SequenceLength(byte: number | undefined): number {
+  if (byte === undefined || byte < 0x80) {
+    return 1;
+  }
+
+  if ((byte & 0xe0) === 0xc0) {
+    return 2;
+  }
+
+  if ((byte & 0xf0) === 0xe0) {
+    return 3;
+  }
+
+  if ((byte & 0xf8) === 0xf0) {
+    return 4;
+  }
+
+  return 1;
 }
