@@ -1,6 +1,6 @@
 {
   "name": "@lgrammel/exa-search-tool",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "AI SDK 7 tools for Exa web search and page content retrieval.",
   "license": "MIT",
   "files": [

@@ -1,5 +1,11 @@
 # @lgrammel/exa-search-tool
 
+## 0.1.3
+
+### Patch Changes
+
+- Pass tool execution abort signals through to Exa search and content fetch requests.
+
 ## 0.1.2
 
 ### Patch Changes

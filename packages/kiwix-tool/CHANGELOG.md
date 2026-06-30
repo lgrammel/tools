@@ -1,5 +1,11 @@
 # @lgrammel/kiwix-tool
 
+## 2.0.4
+
+### Patch Changes
+
+- Mark truncated Kiwix page content explicitly and avoid returning incomplete trailing UTF-8 characters.
+
 ## 2.0.3
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @lgrammel/current-date-tool
 
+## 0.4.0
+
+### Minor Changes
+
+- Add richer current date output with the configured timezone, local date, local time, UTC offset, and Unix timestamp.
+
 ## 0.3.2
 
 ### Patch Changes

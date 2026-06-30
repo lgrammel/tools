@@ -1,5 +1,11 @@
 # @lgrammel/open-meteo-tool
 
+## 0.4.2
+
+### Patch Changes
+
+- Pass tool execution abort signals through to Open-Meteo geocoding and forecast requests.
+
 ## 0.4.1
 
 ### Patch Changes

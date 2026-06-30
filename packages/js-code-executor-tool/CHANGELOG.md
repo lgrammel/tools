@@ -1,5 +1,11 @@
 # @lgrammel/js-code-executor-tool
 
+## 2.0.0
+
+### Major Changes
+
+- Tighten JavaScript executor context typing to structured-cloneable data.
+
 ## 1.0.2
 
 ### Patch Changes
